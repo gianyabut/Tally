@@ -12,7 +12,10 @@ create table public.invites (
   id uuid primary key default gen_random_uuid(),
   team_id uuid not null references public.teams (id) on delete cascade,
   email text not null,
-  token text not null unique default encode(gen_random_bytes(18), 'hex'),
+  -- 64-char random token from two UUIDs (built-in; avoids the pgcrypto dependency).
+  token text not null unique default (
+    replace(gen_random_uuid()::text, '-', '') || replace(gen_random_uuid()::text, '-', '')
+  ),
   invited_by uuid not null references public.profiles (id),
   status public.invite_status not null default 'pending',
   claimed_by_user_id uuid references public.profiles (id),
