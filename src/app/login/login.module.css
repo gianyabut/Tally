@@ -1,0 +1,89 @@
+.screen {
+  flex: 1;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 24px;
+}
+
+.wordmark {
+  font-family: var(--font-mono), monospace;
+  font-size: 13px;
+  letter-spacing: 0.24em;
+  margin-top: 18px;
+  font-weight: 500;
+}
+
+.tagline {
+  font-family: var(--font-mono), monospace;
+  font-size: 11.5px;
+  color: var(--dim);
+  margin-top: 8px;
+}
+
+.buttonWrap {
+  width: 300px;
+  max-width: 100%;
+  margin-top: 50px;
+}
+
+.googleBtn {
+  width: 100%;
+  height: 48px;
+  border-radius: 4px;
+  background: var(--btnbg);
+  color: var(--btnfg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-weight: 600;
+  font-size: 14px;
+  transition: opacity 0.12s ease;
+}
+.googleBtn:hover {
+  opacity: 0.85;
+}
+.googleBtn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.gMark {
+  width: 20px;
+  height: 20px;
+  border-radius: 3px;
+  border: 1.5px solid var(--btnfg);
+  display: grid;
+  place-items: center;
+  font-family: var(--font-mono), monospace;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.caption {
+  font-family: var(--font-mono), monospace;
+  font-size: 10px;
+  color: var(--faint);
+  text-align: center;
+  margin-top: 14px;
+  line-height: 1.8;
+}
+
+.notice {
+  font-family: var(--font-mono), monospace;
+  font-size: 10px;
+  color: var(--sig);
+  text-align: center;
+  margin-top: 14px;
+  line-height: 1.7;
+}
+
+.footer {
+  font-family: var(--font-mono), monospace;
+  font-size: 10.5px;
+  color: var(--faint);
+  margin-top: 52px;
+}

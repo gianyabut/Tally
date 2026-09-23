@@ -1,0 +1,105 @@
+/* ============================================================
+   Tally — design tokens & base styles
+   Colors ported verbatim from the design prototype (docs/).
+   Theme swaps via [data-t] on <html>; dark is default.
+   ============================================================ */
+
+/* ---- Dark theme (default: "mono-signal") ---- */
+:root,
+[data-t="dark"] {
+  --bg: #0b0b0a;
+  --ink: #f0eee9; /* primary text, filled buttons bg, lit tally marks */
+  --mut: #a5a39b; /* secondary text */
+  --dim: #6c6a64; /* tertiary text, inactive icons */
+  --faint: #55534d; /* quietest text, meta */
+  --line: #222220; /* section borders */
+  --hair: #33322f; /* emphasized borders (cards, modals) */
+  --row: #1c1c1a; /* row separators, selected fills */
+  --panel: #141412;
+  --track: #262623; /* empty chart tracks, rails */
+  --ring2: #8f8d85; /* secondary data series (Sick) */
+  --ring3: #55534d;
+  --sig: #ff4438; /* THE signal color: pending proof, OUT, revoke, notif dot */
+  --scrim: rgba(11, 11, 10, 0.68); /* modal overlay */
+  --btnbg: #f0eee9; /* primary button (inverted) */
+  --btnfg: #0b0b0a;
+  --paper: #fdfdfb; /* PDF preview surface, both themes */
+}
+
+/* ---- Light theme ("analog ivory") ---- */
+[data-t="light"] {
+  --bg: #f2efe6;
+  --ink: #1d1b16;
+  --mut: #57534a;
+  --dim: #8b8574;
+  --faint: #b4ae9d;
+  --line: #dcd7c9;
+  --hair: #c9c3b2;
+  --row: #eae6d9;
+  --panel: #fbfaf5;
+  --track: #dcd7c9;
+  --ring2: #8b8574;
+  --ring3: #c9c3b2;
+  --sig: #e8552f; /* international orange, replaces red */
+  --scrim: rgba(29, 27, 22, 0.45);
+  --btnbg: #1d1b16;
+  --btnfg: #f2efe6;
+  --paper: #fdfdfb;
+}
+
+/* ---- Reset ---- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  height: 100%;
+  /* Prevent flash before theme attribute is applied */
+  background: var(--bg);
+}
+
+body {
+  min-height: 100%;
+  color: var(--ink);
+  background: var(--bg);
+  font-family: var(--font-sans), "IBM Plex Sans", system-ui, sans-serif;
+  font-size: 13.5px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+input {
+  font: inherit;
+  color: inherit;
+  outline: none;
+}
+
+svg {
+  display: block;
+}
+
+/* ---- Shared type helpers ---- */
+.mono {
+  font-family: var(--font-mono), "IBM Plex Mono", ui-monospace, monospace;
+}
