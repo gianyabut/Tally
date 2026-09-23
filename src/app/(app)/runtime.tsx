@@ -9,10 +9,11 @@ import {
   useRef,
   useState,
 } from "react";
-import type { YearSettings } from "@/lib/types";
+import type { Role, YearSettings } from "@/lib/types";
 import type { Balances } from "@/lib/ledger/balances";
 import type { Entry, Holiday } from "@/lib/ledger/types";
 import type { NextHoliday } from "@/lib/data/ledger";
+import type { NotificationItem } from "@/lib/data/team";
 
 // ---------- App data (server-fetched, provided to the whole app subtree) ----------
 export type AppData = {
@@ -22,6 +23,9 @@ export type AppData = {
   holidays: Holiday[];
   balances: Balances;
   nextHoliday: NextHoliday;
+  role: Role;
+  teamName: string;
+  notifications: NotificationItem[];
 };
 
 const AppDataContext = createContext<AppData | null>(null);

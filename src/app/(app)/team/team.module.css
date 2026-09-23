@@ -1,0 +1,268 @@
+.wrap {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 84px;
+}
+@media (min-width: 768px) {
+  .wrap {
+    padding-bottom: 0;
+  }
+}
+
+.head {
+  padding: clamp(20px, 3vw, 36px) clamp(20px, 4vw, 44px) 0;
+}
+.headLabel {
+  font-family: var(--font-mono), monospace;
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  color: var(--faint);
+}
+.headLabelHint {
+  color: var(--mut);
+}
+.outStrip {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 20px;
+  padding: 13px 0;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  flex-wrap: wrap;
+}
+.outDot {
+  width: 6px;
+  height: 6px;
+  background: var(--sig);
+}
+.outTitle {
+  font-size: 13.5px;
+  font-weight: 600;
+}
+.outName {
+  font-size: 13px;
+  color: var(--mut);
+}
+.outType {
+  font-family: var(--font-mono), monospace;
+  font-size: 11.5px;
+  color: var(--dim);
+}
+.inviteBtn {
+  margin-left: auto;
+  padding: 9px 16px;
+  border-radius: 4px;
+  background: var(--btnbg);
+  color: var(--btnfg);
+  font-weight: 600;
+  font-size: 12.5px;
+  transition: opacity 0.12s ease;
+}
+.inviteBtn:hover {
+  opacity: 0.85;
+}
+
+/* ---------- Desktop table ---------- */
+.tableScroll {
+  flex: 1;
+  padding: 6px clamp(20px, 4vw, 44px) 20px;
+  overflow-x: auto;
+}
+.table {
+  min-width: 720px;
+}
+.thead,
+.trow {
+  display: grid;
+  grid-template-columns: 180px 92px 1fr 62px 56px 56px 110px;
+  gap: 0 16px;
+}
+.thead {
+  padding: 14px 0 9px;
+  font-family: var(--font-mono), monospace;
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  color: var(--faint);
+  border-bottom: 1px solid var(--line);
+}
+.trow {
+  padding: 12px 0;
+  align-items: center;
+  border-bottom: 1px solid var(--row);
+}
+.right {
+  text-align: right;
+}
+.member {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+}
+.memberName {
+  font-size: 13.5px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.outTag {
+  font-family: var(--font-mono), monospace;
+  font-size: 10px;
+  color: var(--sig);
+}
+.num {
+  font-family: var(--font-mono), monospace;
+  font-size: 13px;
+  text-align: right;
+}
+.numMut {
+  color: var(--mut);
+}
+.numDim {
+  font-size: 11.5px;
+  color: var(--dim);
+}
+.bar {
+  height: 2px;
+  background: var(--row);
+}
+.barFill {
+  height: 100%;
+  background: var(--ink);
+}
+
+/* role chip */
+.roleWrap {
+  position: relative;
+}
+.chip {
+  display: inline-block;
+  font-family: var(--font-mono), monospace;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  padding: 3px 8px;
+  border-radius: 3px;
+  border: 1px solid var(--line);
+  transition: border-color 0.12s ease;
+}
+.chipClickable {
+  cursor: pointer;
+}
+.chipClickable:hover {
+  border-color: var(--dim);
+}
+.menu {
+  position: absolute;
+  left: 0;
+  top: 28px;
+  z-index: 30;
+  background: var(--bg);
+  border: 1px solid var(--hair);
+  border-radius: 4px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
+  min-width: 130px;
+}
+.menuItem {
+  padding: 10px 12px;
+  font-family: var(--font-mono), monospace;
+  font-size: 10.5px;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+}
+.menuItem:hover {
+  background: var(--row);
+}
+.pendingText {
+  font-family: var(--font-mono), monospace;
+  font-size: 11.5px;
+  color: var(--dim);
+}
+.action {
+  font-family: var(--font-mono), monospace;
+  font-size: 10px;
+  cursor: pointer;
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  padding: 15px clamp(20px, 4vw, 44px);
+  border-top: 1px solid var(--line);
+}
+.footerLabel {
+  font-family: var(--font-mono), monospace;
+  font-size: 11px;
+  color: var(--faint);
+}
+
+/* ---------- Mobile grouped ---------- */
+.mobHead {
+  padding: 14px 20px 0;
+  display: flex;
+  align-items: center;
+}
+.mobHeadLabel {
+  font-family: var(--font-mono), monospace;
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  color: var(--faint);
+}
+.mobInvite {
+  margin-left: auto;
+  font-family: var(--font-mono), monospace;
+  font-size: 11px;
+  background: var(--btnbg);
+  color: var(--btnfg);
+  padding: 8px 13px;
+  border-radius: 4px;
+  font-weight: 600;
+}
+.mobList {
+  flex: 1;
+  padding: 0 20px 20px;
+}
+.groupLabel {
+  font-family: var(--font-mono), monospace;
+  font-size: 9.5px;
+  letter-spacing: 0.16em;
+  color: var(--faint);
+  padding: 14px 0 5px;
+  border-bottom: 1px solid var(--hair);
+}
+.mobRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--row);
+}
+.mobName {
+  font-size: 14px;
+  font-weight: 600;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.mobNums {
+  margin-left: auto;
+  font-family: var(--font-mono), monospace;
+  font-size: 11.5px;
+  color: var(--dim);
+  flex: none;
+}
+
+.desktopOnly {
+  display: none;
+}
+@media (min-width: 768px) {
+  .desktopOnly {
+    display: flex;
+  }
+  .mobileOnly {
+    display: none;
+  }
+}

@@ -21,9 +21,13 @@ export default function LoginPage() {
     setNotice(null);
     const supabase = createClient();
     const origin = window.location.origin;
+    const next = new URLSearchParams(window.location.search).get("next");
+    const callback = next
+      ? `${origin}/auth/callback?next=${encodeURIComponent(next)}`
+      : `${origin}/auth/callback`;
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: `${origin}/auth/callback` },
+      options: { redirectTo: callback },
     });
     if (error) {
       setBusy(false);

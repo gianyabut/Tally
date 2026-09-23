@@ -8,7 +8,9 @@ import { createClient } from "@/lib/supabase/server";
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
-  const next = searchParams.get("next") ?? "/";
+  // Only allow local redirect paths (single leading slash), never off-site.
+  const rawNext = searchParams.get("next") ?? "/";
+  const next = /^\/(?!\/)/.test(rawNext) ? rawNext : "/";
 
   if (code) {
     const supabase = await createClient();

@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { getBootstrap } from "@/lib/data/bootstrap";
 import { getLedgerData } from "@/lib/data/ledger";
+import { getUnreadNotifications, getTeamName } from "@/lib/data/team";
 import { deriveBalances } from "@/lib/ledger/balances";
 import { FISCAL_YEAR } from "@/lib/types";
 import { AppRuntime, type AppData } from "./runtime";
@@ -20,7 +21,11 @@ export default async function AppLayout({
   if (!boot.membership) redirect("/onboarding");
 
   const name = boot.profile?.name ?? boot.email ?? "You";
-  const ledger = await getLedgerData(FISCAL_YEAR);
+  const [ledger, notifications, teamName] = await Promise.all([
+    getLedgerData(FISCAL_YEAR),
+    getUnreadNotifications(),
+    getTeamName(boot.membership.team_id),
+  ]);
   const ys = ledger.yearSettings ?? {
     vl_credits: 0,
     sl_credits: 0,
@@ -35,6 +40,9 @@ export default async function AppLayout({
     holidays: ledger.holidays,
     balances,
     nextHoliday: ledger.nextHoliday,
+    role: boot.membership.role,
+    teamName,
+    notifications,
   };
 
   return (

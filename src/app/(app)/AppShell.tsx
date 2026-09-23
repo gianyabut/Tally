@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Logo } from "@/components/Logo";
 import { FISCAL_YEAR } from "@/lib/types";
-import { useModal } from "./runtime";
+import { useAppData, useModal } from "./runtime";
 import styles from "./AppShell.module.css";
 
 type Tab = { href: string; label: string };
@@ -88,6 +88,8 @@ export function AppShell({
 }) {
   const pathname = usePathname();
   const { open } = useModal();
+  const { notifications } = useAppData();
+  const hasNotif = notifications.length > 0;
   const isActive = (href: string) =>
     pathname === href || pathname.startsWith(href + "/");
   const avatar = initials(name);
@@ -114,8 +116,14 @@ export function AppShell({
           ))}
         </nav>
         <div className={styles.deskRight}>
-          <button type="button" className={styles.iconBtn} aria-label="Notifications" title="Notifications — coming soon">
+          <button
+            type="button"
+            className={styles.iconBtn}
+            onClick={() => open("notif")}
+            aria-label="Notifications"
+          >
             <BellIcon />
+            {hasNotif && <span className={styles.notifDot} />}
           </button>
           <button
             type="button"
@@ -137,8 +145,14 @@ export function AppShell({
           <span className={styles.brandName}>TALLY</span>
         </div>
         <div className={styles.mobRight}>
-          <button type="button" className={styles.iconBtn} aria-label="Notifications" title="Notifications — coming soon">
+          <button
+            type="button"
+            className={styles.iconBtn}
+            onClick={() => open("notif")}
+            aria-label="Notifications"
+          >
             <BellIcon />
+            {hasNotif && <span className={styles.notifDot} />}
           </button>
           <span className={styles.fy}>FY{FISCAL_YEAR}</span>
           <div className={styles.avatar}>{avatar}</div>
