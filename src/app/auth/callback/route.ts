@@ -8,17 +8,31 @@ import { createClient } from "@/lib/supabase/server";
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
-  // Only allow local redirect paths (single leading slash), never off-site.
-  const rawNext = searchParams.get("next") ?? "/";
-  const next = /^\/(?!\/)/.test(rawNext) ? rawNext : "/";
+  const next = safeNext(searchParams.get("next"), origin);
 
   if (code) {
     const supabase = await createClient();
     const { error } = await supabase.auth.exchangeCodeForSession(code);
     if (!error) {
-      return NextResponse.redirect(`${origin}${next}`);
+      return NextResponse.redirect(new URL(next, origin));
     }
   }
 
-  return NextResponse.redirect(`${origin}/login?error=auth`);
+  return NextResponse.redirect(new URL("/login?error=auth", origin));
+}
+
+/**
+ * Resolve `next` to a SAME-ORIGIN path only, defeating open-redirect payloads.
+ * Parsing against `origin` normalizes tricks like `//host`, `/\host`, and
+ * backslashes; anything that resolves off-origin falls back to "/".
+ */
+function safeNext(raw: string | null, origin: string): string {
+  if (!raw) return "/";
+  try {
+    const u = new URL(raw, origin);
+    if (u.origin === origin) return u.pathname + u.search;
+  } catch {
+    /* malformed — fall through */
+  }
+  return "/";
 }
