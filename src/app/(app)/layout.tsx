@@ -7,7 +7,6 @@ import { deriveBalances } from "@/lib/ledger/balances";
 import { FISCAL_YEAR } from "@/lib/types";
 import { AppRuntime, type AppData } from "./runtime";
 import { AppShell } from "./AppShell";
-import { Overlays } from "./overlays/Overlays";
 
 export default async function AppLayout({
   children,
@@ -48,7 +47,6 @@ export default async function AppLayout({
   return (
     <AppRuntime data={data}>
       <AppShell name={name}>{children}</AppShell>
-      <Overlays />
     </AppRuntime>
   );
 }

@@ -5,6 +5,11 @@
    ============================================================ */
 
 /* ---- Dark theme (default: "mono-signal") ---- */
+:root {
+  --font-sans: "IBM Plex Sans";
+  --font-mono: "IBM Plex Mono";
+}
+
 :root,
 [data-t="dark"] {
   --bg: #0b0b0a;
@@ -69,11 +74,10 @@ body {
   min-height: 100%;
   color: var(--ink);
   background: var(--bg);
-  font-family: var(--font-sans), "IBM Plex Sans", system-ui, sans-serif;
-  font-size: 13.5px;
+  /* Match the designer's render: Plex with a plain sans-serif fallback,
+     browser-default 16px, and the design-system reset's line-height 1.5. */
+  font-family: var(--font-sans), sans-serif;
   line-height: 1.5;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
 }
 
 a {
@@ -95,11 +99,7 @@ input {
   outline: none;
 }
 
-svg {
-  display: block;
-}
-
 /* ---- Shared type helpers ---- */
 .mono {
-  font-family: var(--font-mono), "IBM Plex Mono", ui-monospace, monospace;
+  font-family: var(--font-mono), monospace;
 }

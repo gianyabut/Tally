@@ -21,6 +21,16 @@ export default async function JoinPage({
     redirect(`/login?next=${encodeURIComponent(`/join/${token}`)}`);
   }
 
+  // Brand-new users join through onboarding (credits first), per APP_FLOW.
+  const { data: membership } = await supabase
+    .from("memberships")
+    .select("id")
+    .eq("user_id", user.id)
+    .maybeSingle();
+  if (!membership) {
+    redirect(`/onboarding?invite=${encodeURIComponent(token)}`);
+  }
+
   const { data } = await supabase.rpc("invite_preview", { p_token: token });
   const preview = Array.isArray(data) ? data[0] : data;
 

@@ -2,15 +2,17 @@
 
 import { useEffect } from "react";
 import { useAppData, useModal } from "../runtime";
+import { typingInField } from "./keys";
 import styles from "../overlays.module.css";
 
 export function CommandPalette() {
-  const { open, close } = useModal();
+  const { open, close, modal } = useModal();
   const { nextHoliday } = useAppData();
 
   // Number keys select a palette action.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
+      if (typingInField(e) || e.metaKey || e.ctrlKey) return;
       if (e.key === "1") open("log");
       else if (e.key === "2") open("leave");
     };
@@ -21,23 +23,15 @@ export function CommandPalette() {
   return (
     <>
       <div className={styles.scrim} onClick={close} />
-      <div className={styles.panel}>
-        <div className={styles.header}>
-          <span
-            style={{
-              fontFamily: "var(--font-mono), monospace",
-              fontSize: 13.5,
-              color: "var(--dim)",
-            }}
-          >
-            what happened?
-          </span>
-          <span className={styles.esc} onClick={close} style={{ cursor: "pointer" }}>
+      <div className={styles.panel} style={{ top: modal.top + 56 }} role="dialog" aria-label="Quick actions">
+        <div className={styles.palHead}>
+          <span className={styles.palPrompt}>what happened?</span>
+          <button type="button" className={styles.esc} onClick={close}>
             ESC
-          </span>
+          </button>
         </div>
-        <div style={{ padding: 8, display: "flex", flexDirection: "column", gap: 4 }}>
-          <div className={styles.paletteRow} onClick={() => open("log")}>
+        <div className={styles.palList}>
+          <button type="button" className={styles.palRow} onClick={() => open("log")}>
             <span className={styles.chip}>1</span>
             <div style={{ flex: 1 }}>
               <div className={styles.rowTitle}>Log holiday work</div>
@@ -47,14 +41,14 @@ export function CommandPalette() {
                   : "credit an In-Lieu or OT day"}
               </div>
             </div>
-          </div>
-          <div className={styles.paletteRow} onClick={() => open("leave")}>
+          </button>
+          <button type="button" className={styles.palRow} onClick={() => open("leave")}>
             <span className={styles.chip}>2</span>
             <div style={{ flex: 1 }}>
               <div className={styles.rowTitle}>File a leave</div>
               <div className={styles.rowSub}>spend VL, SL or In-Lieu</div>
             </div>
-          </div>
+          </button>
         </div>
       </div>
     </>

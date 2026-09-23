@@ -1,9 +1,21 @@
 import { redirect } from "next/navigation";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
+import { createClient } from "@/lib/supabase/server";
 import { getBootstrap } from "@/lib/data/bootstrap";
-import { CreditsSetup } from "./CreditsSetup";
+import { Onboarding, type PendingInvite } from "./Onboarding";
 
-export default async function OnboardingPage() {
+type InviteRow = {
+  token: string;
+  team_name: string;
+  inviter: string;
+  member_count: number | string;
+};
+
+export default async function OnboardingPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ invite?: string }>;
+}) {
   if (!isSupabaseConfigured) redirect("/login");
 
   const boot = await getBootstrap();
@@ -11,7 +23,25 @@ export default async function OnboardingPage() {
   // Already set up — no re-onboarding.
   if (boot.membership) redirect("/ledger");
 
+  // A pending invite (from a /join link's token, else matched by email) turns
+  // on step 1 — "How are you starting?". No invite → straight to the solo path.
+  const { invite: token } = await searchParams;
+  const supabase = await createClient();
+  const { data } = await supabase.rpc(
+    "my_pending_invite",
+    token ? { p_token: token } : {},
+  );
+  const row = (Array.isArray(data) ? data[0] : data) as InviteRow | null;
+  const invite: PendingInvite | null = row
+    ? {
+        token: row.token,
+        teamName: row.team_name,
+        inviter: row.inviter,
+        memberCount: Number(row.member_count),
+      }
+    : null;
+
   const first = (boot.profile?.name ?? boot.email ?? "there").split(/[\s@]/)[0];
 
-  return <CreditsSetup firstName={first} />;
+  return <Onboarding firstName={first} email={boot.email} invite={invite} />;
 }

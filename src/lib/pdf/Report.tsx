@@ -1,4 +1,5 @@
 /* eslint-disable jsx-a11y/alt-text -- @react-pdf/renderer <Image> is not an HTML img and has no alt prop */
+import { todayIso } from "@/lib/ledger/dates";
 import {
   Document,
   Page,
@@ -108,13 +109,14 @@ export function Report({ data }: { data: ReportData }) {
       <Page size="A4" style={s.page}>
         <View style={s.headerRow}>
           <Text style={s.brand}>TALLY — ANNUAL LEAVE REPORT</Text>
-          <Text style={s.headerDate}>{new Date().toISOString().slice(0, 10)}</Text>
+          <Text style={s.headerDate}>{todayIso()}</Text>
         </View>
 
         <View style={s.metaRow}>
           <View style={s.metaBlock}>
             <Text style={s.metaLabel}>EMPLOYEE</Text>
             <Text style={s.metaValueBold}>{employee}</Text>
+            {data.team ? <Text style={{ color: MUTE, marginTop: 1 }}>{data.team}</Text> : null}
           </View>
           <View style={s.metaBlock}>
             <Text style={s.metaLabel}>PERIOD</Text>
@@ -233,7 +235,33 @@ export function Report({ data }: { data: ReportData }) {
         </View>
       </Page>
 
-      {/* Proof appendix — one page per image */}
+      {/* Page 2 — proof index, so every "P.n" reference is verifiable */}
+      {proofs.length > 0 && (
+        <Page size="A4" style={s.page}>
+          <View style={s.headerRow}>
+            <Text style={s.brand}>PROOF OF WORK — INDEX</Text>
+            <Text style={s.headerDate}>{ref}</Text>
+          </View>
+          <View style={s.section}>
+            {proofs.map((p, i) => (
+              <View key={i} style={s.leaveRow}>
+                <Text style={s.cDate}>{p.page}</Text>
+                <Text style={s.cTitle}>{p.date}</Text>
+                <Text style={s.cNote}>{p.file}</Text>
+                <Text style={[s.cDays, { width: 90 }]}>{p.title}</Text>
+              </View>
+            ))}
+          </View>
+          <View style={s.footer}>
+            <Text>Signed digitally via Tally · tally.app/r/{ref}</Text>
+            <Text style={{ marginLeft: "auto", fontFamily: "Courier" }}>
+              PAGE 2 OF {pageCount}
+            </Text>
+          </View>
+        </Page>
+      )}
+
+      {/* Proof appendix — one page per image, from page 3 */}
       {proofs.map((p, i) =>
         p.url ? (
           <Page key={i} size="A4" style={s.page}>
@@ -247,7 +275,7 @@ export function Report({ data }: { data: ReportData }) {
             <View style={s.footer}>
               <Text>{p.file}</Text>
               <Text style={{ marginLeft: "auto", fontFamily: "Courier" }}>
-                PAGE {i + 2} OF {pageCount}
+                PAGE {i + 3} OF {pageCount}
               </Text>
             </View>
           </Page>

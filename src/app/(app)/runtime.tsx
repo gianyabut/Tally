@@ -45,7 +45,9 @@ export type ModalKind =
   | "notif"
   | null;
 
-type ModalState = { kind: ModalKind; entry?: Entry };
+/** `top` = the page's scroll offset when the modal opened: overlays are
+ *  positioned inside the app frame (like the design) at that offset. */
+type ModalState = { kind: ModalKind; entry?: Entry; top: number };
 
 type ModalCtx = {
   modal: ModalState;
@@ -60,13 +62,25 @@ export function useModal(): ModalCtx {
 }
 
 // ---------- Toasts ----------
-type Toast = { id: number; msg: string };
-type ToastCtx = { toasts: Toast[]; showToast: (msg: string) => void };
+// One toast at a time, as in the design: a new message replaces the current.
+type ToastCtx = { toast: string | null; showToast: (msg: string) => void };
 const ToastContext = createContext<ToastCtx | null>(null);
 export function useToast(): ToastCtx {
   const v = useContext(ToastContext);
   if (!v) throw new Error("useToast must be used within AppRuntime");
   return v;
+}
+
+/** Arrival toasts for redirects that carry `?welcome=<code>`. */
+function welcomeMessage(code: string, teamName: string, year: number) {
+  if (code === "joined") return `You joined ${teamName} — ${year} ledger ready`;
+  if (code === "moved") return `You joined ${teamName} — ledger moved into the team`;
+  if (code === "solo") return "Personal workspace ready";
+  if (code === "skip") return "Personal workspace ready — invite workmates anytime";
+  if (code === "invites-failed") return "Workspace ready — invites not sent, retry from Team";
+  const n = /^invited-(\d+)$/.exec(code)?.[1];
+  if (n) return `Workspace ready — ${n} ${n === "1" ? "invite" : "invites"} sent`;
+  return null;
 }
 
 export function AppRuntime({
@@ -76,24 +90,37 @@ export function AppRuntime({
   data: AppData;
   children: React.ReactNode;
 }) {
-  const [modal, setModal] = useState<ModalState>({ kind: null });
-  const [toasts, setToasts] = useState<Toast[]>([]);
-  const nextId = useRef(1);
+  const [modal, setModal] = useState<ModalState>({ kind: null, top: 0 });
+  const [toast, setToast] = useState<string | null>(null);
+  const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const open = useCallback(
     (kind: Exclude<ModalKind, null>, opts?: { entry?: Entry }) =>
-      setModal({ kind, entry: opts?.entry }),
+      setModal((m) => ({ kind, entry: opts?.entry, top: m.kind ? m.top : window.scrollY })),
     [],
   );
-  const close = useCallback(() => setModal({ kind: null }), []);
+  const close = useCallback(() => setModal({ kind: null, top: 0 }), []);
+
+  // Lock page scroll while an overlay is open, padding for the vanished
+  // scrollbar so the page doesn't shift sideways.
+  const anyOpen = modal.kind !== null;
+  useEffect(() => {
+    if (!anyOpen) return;
+    const html = document.documentElement;
+    const scrollbar = window.innerWidth - html.clientWidth;
+    const prev = { overflow: html.style.overflow, paddingRight: html.style.paddingRight };
+    html.style.overflow = "hidden";
+    if (scrollbar > 0) html.style.paddingRight = `${scrollbar}px`;
+    return () => {
+      html.style.overflow = prev.overflow;
+      html.style.paddingRight = prev.paddingRight;
+    };
+  }, [anyOpen]);
 
   const showToast = useCallback((msg: string) => {
-    const id = nextId.current++;
-    setToasts((t) => [...t, { id, msg }]);
-    setTimeout(
-      () => setToasts((t) => t.filter((x) => x.id !== id)),
-      2600,
-    );
+    setToast(msg);
+    if (toastTimer.current) clearTimeout(toastTimer.current);
+    toastTimer.current = setTimeout(() => setToast(null), 2600);
   }, []);
 
   // Keyboard: ⌘K / Ctrl-K opens the palette; Esc closes any modal.
@@ -101,17 +128,34 @@ export function AppRuntime({
     const onKey = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
         e.preventDefault();
-        setModal((m) => (m.kind ? m : { kind: "palette" }));
+        setModal((m) => (m.kind ? m : { kind: "palette", top: window.scrollY }));
       } else if (e.key === "Escape") {
-        setModal({ kind: null });
+        setModal({ kind: null, top: 0 });
       }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
+  // One-shot arrival toast (?welcome=…), then strip the param from the URL.
+  const { teamName, year } = data;
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get("welcome");
+    if (!code) return;
+    params.delete("welcome");
+    const qs = params.toString();
+    window.history.replaceState(
+      null,
+      "",
+      window.location.pathname + (qs ? `?${qs}` : "") + window.location.hash,
+    );
+    const msg = welcomeMessage(code, teamName, year);
+    if (msg) setTimeout(() => showToast(msg), 0);
+  }, [showToast, teamName, year]);
+
   const modalCtx = useMemo(() => ({ modal, open, close }), [modal, open, close]);
-  const toastCtx = useMemo(() => ({ toasts, showToast }), [toasts, showToast]);
+  const toastCtx = useMemo(() => ({ toast, showToast }), [toast, showToast]);
 
   return (
     <AppDataContext.Provider value={data}>

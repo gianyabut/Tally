@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { deriveBalances, availableFor } from "@/lib/ledger/balances";
 import type { Entry } from "@/lib/ledger/types";
+import { leaveEnd } from "@/lib/ledger/dates";
 
 const PROOF_BUCKET = "proofs";
 
@@ -108,7 +109,8 @@ export async function fileLeave(input: {
 }): Promise<Result> {
   const { supabase, user } = await requireUser();
 
-  const days = Math.max(0.5, input.days);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(input.startDate)) return { ok: false, error: "Pick a start date" };
+  const days = Math.min(30, Math.max(0.5, input.days));
   const year = parseInt(input.startDate.slice(0, 4), 10);
 
   // Recompute balances server-side; never trust the client's math.
@@ -139,10 +141,11 @@ export async function fileLeave(input: {
   if (input.source !== "unpaid" && availableFor(input.source, balances) < days)
     return { ok: false, error: `Not enough ${input.source.toUpperCase()}` };
 
-  // End date = start + (days rounded up − 1) calendar days.
-  const start = new Date(input.startDate + "T00:00:00Z");
-  const end = new Date(start);
-  end.setUTCDate(start.getUTCDate() + Math.max(0, Math.ceil(days) - 1));
+  // The leave covers `days` WORKING days (weekends + public holidays skipped),
+  // matching the modal's "N WORKING DAYS" and date range.
+  const { data: hols } = await supabase.from("holidays").select("date").eq("year", year);
+  const holidaySet = new Set(((hols as { date: string }[] | null) ?? []).map((h) => h.date));
+  const endDate = leaveEnd(input.startDate, days, holidaySet);
 
   const kind =
     input.source === "il"
@@ -154,7 +157,7 @@ export async function fileLeave(input: {
   const { error } = await supabase.from("entries").insert({
     user_id: user.id,
     date_start: input.startDate,
-    date_end: end.toISOString().slice(0, 10),
+    date_end: endDate,
     year,
     kind,
     amount: -days,

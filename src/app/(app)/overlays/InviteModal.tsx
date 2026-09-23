@@ -7,139 +7,97 @@ import { sendInvites } from "../team-actions";
 import styles from "../overlays.module.css";
 
 export function InviteModal() {
-  const { close } = useModal();
+  const { close, modal } = useModal();
   const { showToast } = useToast();
   const router = useRouter();
   const [pending, startTransition] = useTransition();
-
   const [draft, setDraft] = useState("");
   const [list, setList] = useState<string[]>([]);
-  const [error, setError] = useState<string | null>(null);
 
   function add() {
     const d = draft.trim();
-    if (!d.includes("@")) {
-      setError("Enter a valid email");
-      return;
-    }
-    setError(null);
+    if (!d.includes("@")) return showToast("Enter a valid email");
     setList((l) => [...l, d]);
     setDraft("");
   }
 
   function send() {
     const all = [...list];
-    if (draft.includes("@")) all.push(draft.trim());
-    if (all.length === 0) {
-      setError("Add at least one email");
-      return;
-    }
+    if (draft.trim().includes("@")) all.push(draft.trim());
+    if (all.length === 0) return showToast("Add at least one email");
     startTransition(async () => {
       const res = await sendInvites(all);
-      if (res.ok) {
-        close();
-        showToast(
-          `${res.count} invite${res.count === 1 ? "" : "s"} sent — pending until they join`,
-        );
-        router.refresh();
-      } else {
-        setError(res.error);
-      }
+      if (!res.ok) return showToast(res.error);
+      close();
+      showToast(`${res.count} ${res.count === 1 ? "invite" : "invites"} sent — pending until they join`);
+      router.refresh();
     });
   }
 
-  const label =
-    list.length > 0
-      ? `Send ${list.length} invite${list.length === 1 ? "" : "s"}`
-      : "Send invites";
+  const label = list.length ? `Send ${list.length} ${list.length === 1 ? "invite" : "invites"}` : "Send invites";
 
   return (
     <>
       <div className={styles.scrim} onClick={close} />
-      <div className={styles.panel}>
-        <div className={styles.header}>
+      <div className={styles.panel} style={{ top: modal.top + 56 }} role="dialog" aria-label="Invite to your team">
+        <div className={styles.head}>
           <div>
-            <div className={styles.headerTitle}>Invite to your team</div>
-            <div className={styles.headerSub}>
-              ANY EMAIL WORKS — THE INVITE IS THEIR SIGNUP
-            </div>
+            <div className={styles.headTitle}>Invite to your team</div>
+            <div className={styles.headSub}>ANY EMAIL WORKS — THE INVITE IS THEIR SIGNUP</div>
           </div>
-          <span className={styles.esc} onClick={close} style={{ cursor: "pointer" }}>
+          <button type="button" className={styles.esc} onClick={close}>
             ESC
-          </span>
+          </button>
         </div>
 
-        <div className={styles.body}>
-          <div style={{ display: "flex", gap: 10 }}>
+        <div className={`${styles.body} ${styles.bodyInvite}`}>
+          <div className={styles.inviteRow}>
             <input
+              type="email"
+              className={styles.email}
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && add()}
-              placeholder="name@anywhere.com"
-              className={styles.input}
-              style={{ flex: 1 }}
-            />
-            <button
-              type="button"
-              onClick={add}
-              style={{
-                padding: "10px 16px",
-                border: "1px solid var(--line)",
-                borderRadius: 4,
-                fontWeight: 600,
-                fontSize: 13,
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  add();
+                }
               }}
-            >
+              placeholder="name@anywhere.com"
+              aria-label="Email"
+            />
+            <button type="button" className={styles.add} onClick={add}>
               Add
             </button>
           </div>
 
           {list.length > 0 && (
-            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            <div className={styles.chips}>
               {list.map((email, i) => (
-                <span
-                  key={i}
+                <button
+                  key={`${email}-${i}`}
+                  type="button"
+                  className={styles.emailChip}
                   onClick={() => setList((l) => l.filter((_, j) => j !== i))}
-                  style={{
-                    cursor: "pointer",
-                    fontFamily: "var(--font-mono), monospace",
-                    fontSize: 12,
-                    border: "1px solid var(--hair)",
-                    borderRadius: 4,
-                    padding: "6px 10px",
-                  }}
+                  aria-label={`Remove ${email}`}
                 >
                   {email} ✕
-                </span>
+                </button>
               ))}
             </div>
           )}
 
-          <div
-            style={{
-              fontFamily: "var(--font-mono), monospace",
-              fontSize: 10.5,
-              color: "var(--faint)",
-              lineHeight: 1.7,
-            }}
-          >
+          <div className={styles.explain}>
             THEY GET AN EMAIL → &quot;JOIN TEAM&quot; → SIGN IN WITH GOOGLE → DONE.
             <br />
-            THEY SHOW AS PENDING UNTIL THEY JOIN · INVITES EXPIRE IN 14 DAYS.
+            THEY SHOW AS PENDING HERE UNTIL THEY JOIN · INVITES EXPIRE IN 14 DAYS.
           </div>
-
-          {error && <div className={styles.error}>{error}</div>}
         </div>
 
-        <div className={styles.footer}>
-          <span className={styles.footerNote}>new members join as Staff</span>
-          <button
-            type="button"
-            className={styles.primary}
-            onClick={send}
-            disabled={pending}
-          >
-            {pending ? "Sending…" : label}
+        <div className={styles.foot}>
+          <span className={styles.footNote}>new members join as Staff</span>
+          <button type="button" className={styles.primary} onClick={send} disabled={pending}>
+            {label}
           </button>
         </div>
       </div>

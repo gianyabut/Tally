@@ -19,6 +19,8 @@ export const DEFAULT_INCLUDES: Includes = {
 
 export type ReportData = {
   employee: string;
+  /** Line under the employee name (the design shows a department). */
+  team: string;
   ref: string;
   year: number;
   period: string;
@@ -64,8 +66,13 @@ export async function buildReportData(
   year: number,
   includes: Includes,
 ): Promise<ReportData> {
-  const [{ data: profile }, { data: ysRow }, { data: rows }, { data: hols }] =
-    await Promise.all([
+  const [
+    { data: profile },
+    { data: ysRow },
+    { data: rows },
+    { data: hols },
+    { data: mem },
+  ] = await Promise.all([
       supabase.from("profiles").select("name,email").eq("id", userId).maybeSingle(),
       supabase
         .from("year_settings")
@@ -80,7 +87,10 @@ export async function buildReportData(
         .eq("year", year)
         .order("date_start", { ascending: true }),
       supabase.from("holidays").select("id,name").eq("year", year),
+      supabase.from("memberships").select("teams(name)").eq("user_id", userId).maybeSingle(),
     ]);
+  const teamRel = (mem?.teams ?? null) as { name: string } | { name: string }[] | null;
+  const team = (Array.isArray(teamRel) ? teamRel[0]?.name : teamRel?.name) ?? "";
 
   const holidayName = new Map(
     ((hols as { id: string; name: string }[] | null) ?? []).map((h) => [
@@ -112,11 +122,16 @@ export async function buildReportData(
             ? "In-Lieu spent"
             : "Unpaid";
 
+  // "07-07" or "07-07–08" — the design's MM-DD list form, en-dash ranges.
+  const dateLabel = (e: Entry) =>
+    e.date_start.slice(5) +
+    (e.date_end !== e.date_start ? "–" + e.date_end.slice(8) : "");
+
   const leaves = includes.leaveHistory
     ? entries
         .filter((e) => e.amount < 0)
         .map((e) => ({
-          date: e.date_start.slice(5),
+          date: dateLabel(e),
           title: titleOf(e),
           note: e.note ?? "",
           days: fmt(Math.abs(e.amount)),
@@ -127,12 +142,14 @@ export async function buildReportData(
     (e) => e.kind === "holiday_work",
   );
 
-  let proofPage = 1;
+  // Page 1 is the report, page 2 the proof index, full-size proofs from page 3.
+  const FIRST_PROOF_PAGE = 3;
+  let proofPage = FIRST_PROOF_PAGE - 1;
   const holidayWork = includes.holidayWork
     ? holidayEntries.map((e) => {
         const pending = isPending(e);
         return {
-          date: e.date_start.slice(5),
+          date: dateLabel(e),
           title: `${titleOf(e)} — ${e.portion === "half" ? "half day" : "full day"}`,
           amt: (e.credit_as === "ot" ? "OT +" : "IL +") + fmt(e.amount),
           proofText: pending ? "NO PROOF" : `P.${++proofPage}`,
@@ -145,7 +162,7 @@ export async function buildReportData(
   const withProof = holidayEntries.filter((e) => e.proof && !isPending(e));
   const proofs: ReportData["proofs"] = [];
   if (includes.proofImages) {
-    let page = 1;
+    let page = FIRST_PROOF_PAGE - 1;
     for (const e of withProof) {
       const path = e.proof!.file_path;
       const { data: signed } = await supabase.storage
@@ -154,7 +171,7 @@ export async function buildReportData(
       proofs.push({
         page: `P.${++page}`,
         file: e.proof!.file_name,
-        date: e.date_start.slice(5),
+        date: dateLabel(e),
         title: titleOf(e).split(" ")[0],
         url: signed?.signedUrl ?? null,
       });
@@ -162,10 +179,11 @@ export async function buildReportData(
   }
 
   const proofCount = proofs.length;
-  const pageCount = 1 + (includes.proofImages ? proofCount : 0);
+  const pageCount = proofCount > 0 ? FIRST_PROOF_PAGE - 1 + proofCount : 1;
 
   return {
     employee,
+    team,
     ref,
     year,
     period: `${year}-01-01 → ${year}-12-31`,

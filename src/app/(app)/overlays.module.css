@@ -1,14 +1,16 @@
+/* Overlays — ported 1:1 from docs/Tally App.dc.html (mCmd / mLog / mLeave /
+   mProof / mInvite / mNotif / toast). Like the design, they're positioned
+   inside the app frame (absolute), at the scroll offset captured on open —
+   `fixed` would put them on their own compositing layer and lose ClearType. */
 .scrim {
-  position: fixed;
+  position: absolute;
   inset: 0;
   background: var(--scrim);
   z-index: 40;
 }
-
 .panel {
-  position: fixed;
+  position: absolute;
   left: 50%;
-  top: 56px;
   transform: translateX(-50%);
   width: min(520px, calc(100% - 32px));
   background: var(--bg);
@@ -18,18 +20,17 @@
   overflow: hidden;
   z-index: 50;
 }
-
-.header {
+.head {
   display: flex;
   align-items: center;
   padding: 15px 20px;
   border-bottom: 1px solid var(--line);
 }
-.headerTitle {
+.headTitle {
   font-size: 14.5px;
   font-weight: 600;
 }
-.headerSub {
+.headSub {
   font-family: var(--font-mono), monospace;
   font-size: 11px;
   color: var(--dim);
@@ -44,21 +45,25 @@
   border-radius: 4px;
   padding: 3px 7px;
 }
-
 .body {
   padding: 16px 20px 18px;
   display: flex;
   flex-direction: column;
   gap: 15px;
 }
-
-.footer {
+.bodyLeave {
+  gap: 16px;
+}
+.bodyInvite {
+  gap: 14px;
+}
+.foot {
   display: flex;
   align-items: center;
   padding: 12px 20px;
   border-top: 1px solid var(--line);
 }
-.footerNote {
+.footNote {
   font-size: 12px;
   color: var(--faint);
 }
@@ -70,16 +75,14 @@
   color: var(--btnfg);
   font-weight: 600;
   font-size: 13.5px;
-  transition: opacity 0.12s ease;
 }
 .primary:hover {
   opacity: 0.85;
 }
 .primary:disabled {
   opacity: 0.5;
+  cursor: default;
 }
-
-/* number chip */
 .chip {
   font-family: var(--font-mono), monospace;
   font-size: 11px;
@@ -89,17 +92,52 @@
   padding: 1px 6px;
 }
 
-/* palette rows */
-.paletteRow {
+/* Inline picker: the design's title text, with an invisible native control
+   over it (holiday / start date) — identical at rest, hint on hover. */
+.pick {
+  position: relative;
+  cursor: pointer;
+}
+.pick:hover {
+  text-decoration: underline dotted;
+  text-underline-offset: 3px;
+}
+.pickControl {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
+/* ---------- Palette ---------- */
+.palHead {
   display: flex;
+  align-items: center;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--line);
+}
+.palPrompt {
+  font-family: var(--font-mono), monospace;
+  font-size: 13.5px;
+  color: var(--dim);
+}
+.palList {
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.palRow {
+  display: flex;
+  width: 100%;
+  text-align: left;
   align-items: center;
   gap: 12px;
   padding: 13px 12px;
   border-radius: 4px;
-  cursor: pointer;
-  transition: background 0.12s ease;
 }
-.paletteRow:hover {
+.palRow:hover {
   background: var(--row);
 }
 .rowTitle {
@@ -113,74 +151,82 @@
   margin-top: 1px;
 }
 
-/* tabs (full/half day) */
+/* ---------- Log holiday work ---------- */
 .tabs {
   display: flex;
   gap: 18px;
   font-size: 13px;
 }
 .tab {
-  cursor: pointer;
   color: var(--dim);
+  font-weight: 400;
   border-bottom: 2px solid transparent;
   padding-bottom: 5px;
 }
-.tabActive {
+.tabOn {
   color: var(--ink);
   font-weight: 600;
   border-bottom-color: var(--ink);
 }
-
-/* option cards */
+.options {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
 .option {
   display: flex;
+  width: 100%;
+  text-align: left;
   align-items: center;
   gap: 12px;
   padding: 13px 14px;
   border: 1px solid var(--line);
   border-radius: 4px;
-  cursor: pointer;
-  transition: border-color 0.12s ease;
+}
+.optionLeave {
+  padding: 12px 14px;
 }
 .option:hover {
   border-color: var(--dim);
 }
-.optionSel {
+.optionOn,
+.optionOn:hover {
   border-color: var(--ink);
   background: var(--row);
 }
-.optionTitle {
+.optTitle {
   font-size: 14px;
   font-weight: 600;
 }
-.optionDesc {
+.optDesc {
   font-size: 11.5px;
   color: var(--dim);
   margin-top: 1px;
 }
-.optionAmt {
+.optAmt {
   font-family: var(--font-mono), monospace;
   font-size: 14px;
 }
-
-/* proof attach row */
 .proofRow {
   display: flex;
+  width: 100%;
+  text-align: left;
   align-items: center;
   gap: 12px;
   padding: 13px 14px;
   border: 1px dashed var(--hair);
   border-radius: 4px;
   min-height: 44px;
-  cursor: pointer;
 }
-.proofRowOk {
+.proofRow:hover {
+  border-color: var(--dim);
+}
+.proofRowOn,
+.proofRowOn:hover {
   border-color: var(--ink);
-  border-style: solid;
 }
 .proofText {
   font-size: 13px;
-  color: var(--mut);
 }
 .proofTag {
   margin-left: auto;
@@ -188,8 +234,8 @@
   font-size: 11px;
 }
 
-/* fields */
-.fieldLabelRow {
+/* ---------- File a leave ---------- */
+.daysRow {
   display: flex;
   align-items: center;
   gap: 14px;
@@ -200,7 +246,7 @@
   letter-spacing: 0.14em;
   color: var(--mut);
 }
-.stepBtn {
+.step {
   width: 34px;
   height: 34px;
   display: grid;
@@ -209,23 +255,22 @@
   border-radius: 4px;
   color: var(--mut);
   font-family: var(--font-mono), monospace;
-  transition: border-color 0.12s ease;
+  font-size: 16px;
 }
-.stepBtn:hover {
+.step:hover {
   border-color: var(--dim);
 }
 .stepValue {
   font-family: var(--font-mono), monospace;
   font-size: 18px;
 }
-.spendMath {
+.math {
   margin-left: auto;
   font-family: var(--font-mono), monospace;
   font-size: 13px;
 }
-.input {
+.line {
   width: 100%;
-  box-sizing: border-box;
   background: transparent;
   border: none;
   border-bottom: 1px solid var(--line);
@@ -234,72 +279,249 @@
   font-size: 12.5px;
   padding: 10px 0 8px;
 }
-.error {
-  font-family: var(--font-mono), monospace;
-  font-size: 11px;
-  color: var(--sig);
+.line::placeholder,
+.email::placeholder {
+  color: var(--dim);
+}
+.line:focus {
+  border-bottom-color: var(--dim);
 }
 
-/* Proof viewer (full surface) */
+/* ---------- Invite ---------- */
+.inviteRow {
+  display: flex;
+  gap: 10px;
+}
+.email {
+  flex: 1;
+  min-width: 0;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--hair);
+  color: var(--ink);
+  font-family: var(--font-mono), monospace;
+  font-size: 13.5px;
+  padding: 10px 0 8px;
+}
+.email:focus {
+  border-bottom-color: var(--dim);
+}
+.add {
+  padding: 10px 16px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  font-weight: 600;
+  font-size: 13px;
+  align-self: center;
+}
+.add:hover,
+.emailChip:hover {
+  border-color: var(--dim);
+}
+.chips {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.emailChip {
+  font-family: var(--font-mono), monospace;
+  font-size: 12px;
+  border: 1px solid var(--hair);
+  border-radius: 4px;
+  padding: 6px 10px;
+}
+.explain {
+  font-family: var(--font-mono), monospace;
+  font-size: 10.5px;
+  color: var(--faint);
+  line-height: 1.7;
+}
+
+/* ---------- Proof viewer (full surface) ---------- */
 .viewer {
-  position: fixed;
-  inset: 0;
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: 100dvh;
   background: var(--bg);
   z-index: 60;
   display: flex;
   flex-direction: column;
 }
-.viewerHead {
+.vHead {
   display: flex;
   align-items: center;
-  padding: 16px clamp(16px, 3vw, 28px);
+  padding: 16px clamp(16px, 3cqw, 28px);
 }
-.viewerClose {
+.vClose {
   font-size: 13px;
   color: var(--dim);
-  cursor: pointer;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
 }
-.viewerMeta {
+.vClose:hover {
+  color: var(--ink);
+}
+.vMeta {
   margin-left: auto;
   font-family: var(--font-mono), monospace;
   font-size: 11.5px;
   color: var(--dim);
 }
-.viewerBody {
+.vBody {
   flex: 1;
   display: grid;
   place-items: center;
   padding: 0 24px;
 }
-.viewerImg {
-  max-width: min(560px, 100%);
-  max-height: 60vh;
+.vFrame {
+  width: min(480px, 100%);
+  height: 300px;
   border-radius: 4px;
+  background: var(--row);
   border: 1px solid var(--hair);
+  display: grid;
+  place-items: center;
+  overflow: hidden;
 }
-.viewerFoot {
+.vImg {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+.vPlaceholder {
+  text-align: center;
+  color: var(--dim);
+}
+.vCaption {
+  font-size: 11.5px;
+  font-family: var(--font-mono), monospace;
+}
+.vFoot {
   display: flex;
   align-items: baseline;
   gap: 14px;
-  padding: 18px clamp(16px, 3vw, 28px);
+  padding: 18px clamp(16px, 3cqw, 28px);
   border-top: 1px solid var(--line);
   flex-wrap: wrap;
 }
+.vActions {
+  margin-left: auto;
+  display: flex;
+  gap: 18px;
+  font-size: 12.5px;
+}
 
-/* Toasts */
-.toaster {
+/* ---------- Notifications ---------- */
+.catcher {
+  position: absolute;
+  inset: 0;
+  z-index: 40;
+}
+.notif {
+  position: absolute;
+  right: 16px;
+  top: 60px;
+  width: min(340px, calc(100% - 32px));
+  background: var(--bg);
+  border: 1px solid var(--hair);
+  border-radius: 6px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
+  z-index: 50;
+  overflow: hidden;
+}
+.nHead {
+  display: flex;
+  align-items: center;
+  padding: 13px 16px;
+  border-bottom: 1px solid var(--line);
+}
+.nTitle {
+  font-family: var(--font-mono), monospace;
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  color: var(--mut);
+}
+.nCount {
+  margin-left: auto;
+  font-family: var(--font-mono), monospace;
+  font-size: 10px;
+}
+.nRow {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--row);
+}
+.nTop {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.nDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--sig);
+  flex: none;
+}
+.nKind {
+  font-size: 13.5px;
+  font-weight: 600;
+}
+.nWhen {
+  margin-left: auto;
+  font-family: var(--font-mono), monospace;
+  font-size: 9.5px;
+  color: var(--faint);
+}
+.nBody {
+  font-family: var(--font-mono), monospace;
+  font-size: 10px;
+  color: var(--dim);
+  margin-top: 6px;
+  line-height: 1.7;
+}
+.nActions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 12px;
+}
+.nAccept {
+  padding: 9px 16px;
+  border-radius: 4px;
+  background: var(--btnbg);
+  color: var(--btnfg);
+  font-weight: 600;
+  font-size: 12.5px;
+}
+.nAccept:hover {
+  opacity: 0.85;
+}
+.nDecline {
+  font-size: 12.5px;
+  color: var(--dim);
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+}
+.nDecline:hover {
+  color: var(--ink);
+}
+.nEmpty {
+  padding: 22px 16px;
+  font-family: var(--font-mono), monospace;
+  font-size: 10.5px;
+  color: var(--faint);
+}
+
+/* ---------- Toast ---------- */
+.toast {
   position: fixed;
   left: 50%;
   bottom: 24px;
   transform: translateX(-50%);
   z-index: 70;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  align-items: center;
-  max-width: calc(100% - 40px);
-}
-.toast {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -308,6 +530,7 @@
   color: var(--btnfg);
   border-radius: 4px;
   box-shadow: 0 14px 40px rgba(0, 0, 0, 0.4);
+  max-width: calc(100% - 40px);
   font-size: 13px;
   font-weight: 600;
 }

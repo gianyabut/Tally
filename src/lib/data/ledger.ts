@@ -2,6 +2,7 @@ import "server-only";
 import { createClient } from "@/lib/supabase/server";
 import type { YearSettings } from "@/lib/types";
 import type { Entry, Holiday } from "@/lib/ledger/types";
+import { todayIso } from "@/lib/ledger/dates";
 
 export async function getYearSettings(
   year: number,
@@ -34,7 +35,6 @@ export type LedgerData = {
   nextHoliday: NextHoliday;
 };
 
-const iso = (d: Date) => d.toISOString().slice(0, 10);
 
 type ProofRow = {
   id: string;
@@ -91,7 +91,7 @@ export async function getLedgerData(year: number): Promise<LedgerData> {
   const holidays = (holRes.data as Holiday[] | null) ?? [];
 
   // Next holiday relative to today.
-  const today = iso(new Date());
+  const today = todayIso();
   let nextHoliday: NextHoliday = null;
   const upcoming = holidays.find((h) => h.date >= today);
   if (upcoming) {

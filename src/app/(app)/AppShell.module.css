@@ -1,9 +1,16 @@
+/* App shell — ported 1:1 from docs/Tally App.dc.html. Full-bleed up to 1440px
+   (top of the supported 390–1440 range), centered beyond; container-type makes
+   the prototype's cqw units resolve against this frame. */
 .app {
-  flex: 1;
+  position: relative; /* overlays are positioned inside the app frame */
   min-height: 100dvh;
   display: flex;
   flex-direction: column;
+  width: 100%;
+  max-width: 1440px;
+  margin: 0 auto;
   background: var(--bg);
+  container-type: inline-size;
 }
 
 .main {
@@ -13,7 +20,7 @@
   min-width: 0;
 }
 
-/* ---------- Desktop header (>= 768px) ---------- */
+/* ---------- Desktop header ---------- */
 .deskHeader {
   display: none;
   align-items: center;
@@ -28,7 +35,7 @@
   align-items: center;
   gap: 8px;
 }
-.brandName {
+.deskBrandName {
   font-family: var(--font-mono), monospace;
   font-size: 13px;
   letter-spacing: 0.16em;
@@ -41,9 +48,9 @@
 }
 .navLink {
   color: var(--dim);
+  font-weight: 400;
   border-bottom: 2px solid transparent;
   padding: 18px 0;
-  transition: color 0.12s ease;
 }
 .navLink:hover {
   color: var(--ink);
@@ -59,7 +66,7 @@
   align-items: center;
   gap: 14px;
 }
-.iconBtn {
+.bell {
   position: relative;
   width: 32px;
   height: 32px;
@@ -67,12 +74,11 @@
   place-items: center;
   border: 1px solid var(--line);
   border-radius: 4px;
-  transition: border-color 0.12s ease;
 }
-.iconBtn:hover {
+.bell:hover {
   border-color: var(--dim);
 }
-.notifDot {
+.bellDot {
   position: absolute;
   top: 4px;
   right: 4px;
@@ -88,18 +94,18 @@
   border: 1px solid var(--line);
   border-radius: 4px;
   padding: 7px 10px;
-  transition:
-    border-color 0.12s ease,
-    color 0.12s ease;
 }
 .cmdChip:hover {
   border-color: var(--dim);
   color: var(--mut);
 }
-.fy {
+.deskFy {
   font-family: var(--font-mono), monospace;
   font-size: 12.5px;
   color: var(--dim);
+}
+.avatarWrap {
+  position: relative;
 }
 .avatar {
   width: 28px;
@@ -113,7 +119,7 @@
   font-size: 10.5px;
 }
 
-/* ---------- Mobile header (< 768px) ---------- */
+/* ---------- Mobile header ---------- */
 .mobHeader {
   display: flex;
   align-items: center;
@@ -122,14 +128,82 @@
   border-bottom: 1px solid var(--line);
   flex: none;
 }
+.mobBrandName {
+  font-family: var(--font-mono), monospace;
+  font-size: 12px;
+  letter-spacing: 0.16em;
+  font-weight: 500;
+}
 .mobRight {
   margin-left: auto;
   display: flex;
   align-items: center;
   gap: 12px;
 }
+.mobBell {
+  position: relative;
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+}
+.mobBellDot {
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--sig);
+}
+.mobFy {
+  font-family: var(--font-mono), monospace;
+  font-size: 11.5px;
+  color: var(--dim);
+}
+.mobAvatar {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--ink);
+  display: grid;
+  place-items: center;
+  color: var(--bg);
+  font-weight: 700;
+  font-size: 10px;
+}
 
-/* ---------- Mobile bottom bar + FAB (< 768px) ---------- */
+/* Avatar menu — not in the mockup at rest; opens on click (theme + sign out). */
+.menu {
+  position: absolute;
+  right: 0;
+  top: 36px;
+  z-index: 30;
+  background: var(--bg);
+  border: 1px solid var(--hair);
+  border-radius: 4px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
+  min-width: 150px;
+  overflow: hidden;
+}
+.menuItem {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 10px 12px;
+  font-family: var(--font-mono), monospace;
+  font-size: 10.5px;
+  letter-spacing: 0.08em;
+  color: var(--mut);
+}
+.menuItem:hover {
+  background: var(--row);
+  color: var(--ink);
+}
+
+/* ---------- Mobile bottom bar + FAB ---------- */
 .bottomWrap {
   position: sticky;
   bottom: 0;
@@ -150,7 +224,6 @@
   font-weight: 600;
   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
   z-index: 10;
-  transition: opacity 0.12s ease;
 }
 .fab:hover {
   opacity: 0.9;
@@ -171,13 +244,9 @@
 .tick {
   width: 14px;
   height: 2px;
-  background: transparent;
-}
-.tickActive {
-  background: var(--ink);
 }
 
-/* ---------- Breakpoint switch ---------- */
+/* ---------- Breakpoint ---------- */
 @media (min-width: 768px) {
   .deskHeader {
     display: flex;

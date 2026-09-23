@@ -1,29 +1,38 @@
-.wrap {
+/* Ledger — ported 1:1 from docs/Tally App.dc.html (dLedger / mLedgerV). */
+.desk,
+.mob {
   flex: 1;
-  display: flex;
   flex-direction: column;
-  padding-bottom: 84px;
+}
+.desk {
+  display: none;
+}
+.mob {
+  display: flex;
 }
 @media (min-width: 768px) {
-  .wrap {
-    padding-bottom: 0;
+  .desk {
+    display: flex;
+  }
+  .mob {
+    display: none;
   }
 }
 
-/* ---------- Balances band ---------- */
+.mono {
+  font-family: var(--font-mono), monospace;
+}
+
+/* ================= Desktop ================= */
 .band {
   display: flex;
-  align-items: flex-start;
-  gap: clamp(24px, 4vw, 52px);
-  padding: clamp(20px, 3vw, 36px) clamp(20px, 4vw, 44px) clamp(18px, 3vw, 28px);
+  align-items: center;
+  gap: clamp(24px, 4cqw, 52px);
+  padding: clamp(24px, 3cqw, 36px) clamp(20px, 4cqw, 44px) clamp(20px, 3cqw, 28px);
   flex-wrap: wrap;
 }
 .totalBlock {
   flex: none;
-}
-.totalBlockCentered {
-  text-align: center;
-  width: 100%;
 }
 .balLabel {
   font-family: var(--font-mono), monospace;
@@ -33,62 +42,51 @@
 }
 .balTotal {
   font-family: var(--font-mono), monospace;
+  font-size: 64px;
   font-weight: 500;
   line-height: 1.15;
-  font-size: 52px;
-}
-@media (min-width: 768px) {
-  .balTotal {
-    font-size: 64px;
-  }
 }
 .balCaption {
   font-family: var(--font-mono), monospace;
   font-size: 10.5px;
   color: var(--faint);
 }
-
 .tallyCol {
   flex: 1;
-  min-width: min(340px, 100%);
+  min-width: min(360px, 100%);
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 18px;
 }
 .tallyRow {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 16px;
 }
 .tallyLabel {
-  font-size: 13px;
+  font-size: 13.5px;
   color: var(--mut);
-  width: 68px;
+  width: 74px;
   flex: none;
 }
 .tallyVal {
   margin-left: auto;
   font-family: var(--font-mono), monospace;
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 500;
   white-space: nowrap;
 }
 .tallySub {
   font-size: 11px;
 }
-
 .sideCol {
+  margin-left: auto;
   min-width: min(290px, 100%);
   flex: 1;
   max-width: 360px;
   display: flex;
   flex-direction: column;
   gap: 12px;
-}
-@media (min-width: 768px) {
-  .sideCol {
-    margin-left: auto;
-  }
 }
 .holidayCard {
   padding: 20px 22px;
@@ -121,7 +119,6 @@
   font-weight: 600;
   font-size: 14px;
   border-radius: 4px;
-  transition: opacity 0.12s ease;
 }
 .holidayBtn:hover {
   opacity: 0.85;
@@ -133,41 +130,37 @@
   display: flex;
   align-items: center;
   min-height: 44px;
-  transition: border-color 0.12s ease;
 }
 .exportRow:hover {
   border-color: var(--hair);
 }
-
-/* Mobile holiday strip */
-.holidayStrip {
-  margin: 0 20px;
-  padding: 13px 0;
-  border-top: 1px solid var(--line);
-  border-bottom: 1px solid var(--line);
-  display: flex;
-  align-items: center;
-  gap: 10px;
+.exportRowLabel {
+  font-size: 13.5px;
+  color: var(--ring2);
+}
+.exportRowCta {
+  margin-left: auto;
+  font-size: 13.5px;
+  font-weight: 600;
 }
 
-/* ---------- Timeline ---------- */
 .timeline {
   flex: 1;
-  margin: 0 clamp(20px, 4vw, 44px);
+  margin: 0 clamp(20px, 4cqw, 44px) 0;
   border-top: 1px solid var(--hair);
 }
-.timelineHead {
+.tHead {
   display: flex;
   align-items: center;
   padding: 15px 0;
 }
-.timelineHeadLabel {
+.tHeadLabel {
   font-family: var(--font-mono), monospace;
   font-size: 11px;
   letter-spacing: 0.18em;
   color: var(--dim);
 }
-.timelineHeadN {
+.tHeadN {
   margin-left: auto;
   font-family: var(--font-mono), monospace;
   font-size: 11.5px;
@@ -222,25 +215,23 @@
   font-size: 15px;
   font-weight: 600;
 }
-.metaPending {
-  font-family: var(--font-mono), monospace;
-  font-size: 11px;
-  color: var(--sig);
-  margin-top: 3px;
-  cursor: pointer;
-}
-.metaNormal {
+.meta {
+  display: block;
+  text-align: left;
   font-family: var(--font-mono), monospace;
   font-size: 11px;
   color: var(--faint);
   margin-top: 3px;
-  transition: color 0.12s ease;
 }
-.metaClickable {
-  cursor: pointer;
-}
-.metaClickable:hover {
+button.meta:hover {
   color: var(--dim);
+}
+.metaPending {
+  color: var(--sig);
+}
+button.metaPending:hover {
+  color: var(--sig);
+  opacity: 0.8;
 }
 .amt {
   font-family: var(--font-mono), monospace;
@@ -258,18 +249,26 @@
   letter-spacing: 0.08em;
   flex-wrap: wrap;
 }
-.legendSwatch {
+.swatch {
   display: inline-block;
   width: 8px;
   height: 8px;
   margin-right: 6px;
   vertical-align: middle;
 }
-
+.swatchSpent {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  border: 1.5px solid var(--faint);
+  margin-right: 6px;
+  vertical-align: middle;
+}
 .footer {
   display: flex;
   align-items: center;
-  padding: 15px clamp(20px, 4vw, 44px);
+  padding: 15px clamp(20px, 4cqw, 44px);
   border-top: 1px solid var(--line);
 }
 .footerLabel {
@@ -277,12 +276,17 @@
   font-size: 11px;
   color: var(--faint);
 }
-.link {
+.footerLink {
+  margin-left: auto;
   font-size: 13px;
   font-weight: 600;
-  cursor: pointer;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
 }
-
+.footerLink:hover {
+  opacity: 0.8;
+}
 .empty {
   padding: 40px 0;
   font-family: var(--font-mono), monospace;
@@ -291,26 +295,165 @@
   text-align: center;
 }
 
-/* Tighter rail on mobile */
-@media (max-width: 767px) {
-  .rail {
-    margin-left: 44px;
-    padding-left: 18px;
-  }
-  .mon {
-    left: -62px;
-    font-size: 11px;
-  }
-  .node {
-    left: -23px;
-    width: 8px;
-    height: 8px;
-  }
-  .day {
-    width: 38px;
-    font-size: 11.5px;
-  }
-  .rowTitle {
-    font-size: 14px;
-  }
+/* ================= Mobile ================= */
+.mob {
+  overflow: hidden;
+}
+.mTotal {
+  padding: 14px 20px 4px;
+  text-align: center;
+}
+.mBalTotal {
+  font-family: var(--font-mono), monospace;
+  font-size: 52px;
+  font-weight: 500;
+  line-height: 1.2;
+}
+.mBalCaption {
+  font-family: var(--font-mono), monospace;
+  font-size: 10px;
+  color: var(--faint);
+}
+.mTallies {
+  padding: 10px 20px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.mTallyRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.mTallyLabel {
+  font-size: 12.5px;
+  color: var(--mut);
+  width: 60px;
+  flex: none;
+}
+.mTallyVal {
+  margin-left: auto;
+  font-family: var(--font-mono), monospace;
+  font-size: 13.5px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.mTallySub {
+  font-size: 10px;
+}
+.mStrip {
+  margin: 0 20px;
+  padding: 13px 0;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.mStripDot {
+  width: 5px;
+  height: 5px;
+  background: var(--ink);
+  flex: none;
+}
+.mStripName {
+  font-size: 13px;
+  font-weight: 600;
+}
+.mStripT {
+  font-family: var(--font-mono), monospace;
+  font-size: 10px;
+  color: var(--dim);
+}
+.mStripLog {
+  margin-left: auto;
+  font-size: 12.5px;
+  font-weight: 600;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+}
+.mStripLog:hover {
+  opacity: 0.8;
+}
+.mScroll {
+  flex: 1;
+  padding: 0 20px 84px;
+}
+.mHead {
+  display: flex;
+  align-items: center;
+  padding: 10px 0;
+}
+.mHeadLabel {
+  font-family: var(--font-mono), monospace;
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  color: var(--dim);
+}
+.mHeadN {
+  margin-left: auto;
+  font-family: var(--font-mono), monospace;
+  font-size: 10.5px;
+  color: var(--faint);
+}
+.mRail {
+  margin-left: 44px;
+  position: relative;
+  padding-left: 18px;
+  border-left: 1px solid var(--track);
+}
+.mRow {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 13px 0;
+  border-top: 1px solid var(--row);
+}
+.mMon {
+  position: absolute;
+  left: -62px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-family: var(--font-mono), monospace;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+}
+.mNode {
+  position: absolute;
+  left: -23px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 8px;
+  height: 8px;
+  border: 2px solid var(--bg);
+}
+.mDay {
+  font-family: var(--font-mono), monospace;
+  font-size: 11.5px;
+  line-height: 1.5;
+  width: 38px;
+  flex: none;
+  white-space: nowrap;
+}
+.mRowTitle {
+  font-size: 14px;
+  font-weight: 600;
+}
+.mMeta {
+  display: block;
+  text-align: left;
+  font-family: var(--font-mono), monospace;
+  font-size: 9.5px;
+  color: var(--faint);
+  margin-top: 2px;
+}
+button.mMeta:hover {
+  color: var(--dim);
+}
+.mAmt {
+  font-family: var(--font-mono), monospace;
+  font-size: 13px;
+  flex: none;
 }

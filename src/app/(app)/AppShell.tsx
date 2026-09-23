@@ -1,30 +1,26 @@
 "use client";
 
+import { useCallback, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Logo } from "@/components/Logo";
-import { ThemeToggle } from "@/components/ThemeToggle";
+import { initials } from "@/lib/names";
+import { useTheme } from "@/lib/theme/ThemeProvider";
 import { FISCAL_YEAR } from "@/lib/types";
+import { useOutsideClose } from "@/lib/useOutsideClose";
 import { useAppData, useModal } from "./runtime";
+import { Overlays } from "./overlays/Overlays";
 import styles from "./AppShell.module.css";
 
-type Tab = { href: string; label: string };
-const TABS: Tab[] = [
+const TABS = [
   { href: "/ledger", label: "Ledger" },
   { href: "/team", label: "Team" },
   { href: "/export", label: "Export" },
-];
+] as const;
 
-function initials(name: string) {
-  const parts = name.trim().split(/\s+/).filter(Boolean);
-  if (parts.length === 0) return "?";
-  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
-  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
-}
-
-function BellIcon() {
+function BellIcon({ size }: { size: number }) {
   return (
-    <svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden>
+    <svg width={size} height={size} viewBox="0 0 16 16" fill="none" aria-hidden>
       <path
         d="M8 1.5a4.2 4.2 0 0 0-4.2 4.2c0 3-1.3 4.3-1.3 4.3h11s-1.3-1.3-1.3-4.3A4.2 4.2 0 0 0 8 1.5zM6.5 12.5a1.6 1.6 0 0 0 3 0"
         stroke="var(--mut)"
@@ -80,20 +76,82 @@ function TabIcon({ tab, color }: { tab: string; color: string }) {
   );
 }
 
+/** Avatar that opens a small menu (theme + sign out). Identical to the mockup at rest. */
+function AvatarMenu({ name, mobile }: { name: string; mobile?: boolean }) {
+  const [open, setOpen] = useState(false);
+  const { theme, toggleTheme } = useTheme();
+  useOutsideClose(open, useCallback(() => setOpen(false), []));
+  return (
+    <div className={styles.avatarWrap} data-popover-root>
+      <button
+        type="button"
+        className={mobile ? styles.mobAvatar : styles.avatar}
+        onClick={() => setOpen((o) => !o)}
+        aria-label="Account menu"
+        aria-expanded={open}
+      >
+        {initials(name)}
+      </button>
+      {open && (
+        <>
+          <div className={styles.menu} role="menu">
+            <button
+              type="button"
+              role="menuitem"
+              className={styles.menuItem}
+              onClick={() => {
+                toggleTheme();
+                setOpen(false);
+              }}
+            >
+              {theme === "dark" ? "LIGHT THEME" : "DARK THEME"}
+            </button>
+            <form action="/auth/signout" method="post">
+              <button type="submit" role="menuitem" className={styles.menuItem}>
+                SIGN OUT
+              </button>
+            </form>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
 export function AppShell({
   name,
+  active,
   children,
 }: {
   name: string;
+  /** Override the active tab (design previews render outside the real routes). */
+  active?: string;
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
-  const { open } = useModal();
+  const { open, modal } = useModal();
   const { notifications } = useAppData();
+  // While an overlay is open the page can't scroll, so pin the (normally
+  // sticky) tab bar absolutely at the same spot: a sticky layer is composited,
+  // and overlays painted over it would lose ClearType text.
+  // The proof viewer is an opaque full-surface takeover, so the bar isn't
+  // painted at all then.
+  const barStyle: React.CSSProperties | undefined =
+    modal.kind !== null
+      ? {
+          position: "absolute",
+          left: 0,
+          right: 0,
+          top: `calc(${modal.top}px + 100dvh)`,
+          bottom: "auto",
+          transform: "translateY(-100%)",
+          display: modal.kind === "proof" ? "none" : undefined,
+        }
+      : undefined;
   const hasNotif = notifications.length > 0;
+  const current = active ?? pathname;
   const isActive = (href: string) =>
-    pathname === href || pathname.startsWith(href + "/");
-  const avatar = initials(name);
+    current === href || current.startsWith(href + "/");
 
   return (
     <div className={styles.app}>
@@ -101,16 +159,14 @@ export function AppShell({
       <header className={styles.deskHeader}>
         <div className={styles.brand}>
           <Logo size={18} strokeWidth={2.4} />
-          <span className={styles.brandName}>TALLY</span>
+          <span className={styles.deskBrandName}>TALLY</span>
         </div>
         <nav className={styles.nav}>
           {TABS.map((t) => (
             <Link
               key={t.href}
               href={t.href}
-              className={`${styles.navLink} ${
-                isActive(t.href) ? styles.navLinkActive : ""
-              }`}
+              className={`${styles.navLink} ${isActive(t.href) ? styles.navLinkActive : ""}`}
             >
               {t.label}
             </Link>
@@ -119,24 +175,23 @@ export function AppShell({
         <div className={styles.deskRight}>
           <button
             type="button"
-            className={styles.iconBtn}
+            className={styles.bell}
             onClick={() => open("notif")}
             aria-label="Notifications"
           >
-            <BellIcon />
-            {hasNotif && <span className={styles.notifDot} />}
+            <BellIcon size={15} />
+            {hasNotif && <span className={styles.bellDot} />}
           </button>
           <button
             type="button"
             className={styles.cmdChip}
             onClick={() => open("palette")}
-            title="Quick actions"
+            aria-label="Quick actions"
           >
             ⌘K
           </button>
-          <span className={styles.fy}>FY{FISCAL_YEAR}</span>
-          <ThemeToggle />
-          <div className={styles.avatar}>{avatar}</div>
+          <span className={styles.deskFy}>FY{FISCAL_YEAR}</span>
+          <AvatarMenu name={name} />
         </div>
       </header>
 
@@ -144,28 +199,27 @@ export function AppShell({
       <header className={styles.mobHeader}>
         <div className={styles.brand}>
           <Logo size={16} strokeWidth={2.4} />
-          <span className={styles.brandName}>TALLY</span>
+          <span className={styles.mobBrandName}>TALLY</span>
         </div>
         <div className={styles.mobRight}>
           <button
             type="button"
-            className={styles.iconBtn}
+            className={styles.mobBell}
             onClick={() => open("notif")}
             aria-label="Notifications"
           >
-            <BellIcon />
-            {hasNotif && <span className={styles.notifDot} />}
+            <BellIcon size={14} />
+            {hasNotif && <span className={styles.mobBellDot} />}
           </button>
-          <span className={styles.fy}>FY{FISCAL_YEAR}</span>
-          <ThemeToggle size={30} />
-          <div className={styles.avatar}>{avatar}</div>
+          <span className={styles.mobFy}>FY{FISCAL_YEAR}</span>
+          <AvatarMenu name={name} mobile />
         </div>
       </header>
 
       <main className={styles.main}>{children}</main>
 
       {/* Mobile bottom bar + FAB */}
-      <div className={styles.bottomWrap}>
+      <div className={styles.bottomWrap} style={barStyle}>
         <button
           type="button"
           className={styles.fab}
@@ -176,19 +230,21 @@ export function AppShell({
         </button>
         <nav className={styles.bottomBar}>
           {TABS.map((t) => {
-            const active = isActive(t.href);
-            const color = active ? "var(--ink)" : "var(--faint)";
+            const on = isActive(t.href);
             return (
-              <Link key={t.href} href={t.href} className={styles.tab}>
-                <TabIcon tab={t.href} color={color} />
+              <Link key={t.href} href={t.href} className={styles.tab} aria-label={t.label}>
+                <TabIcon tab={t.href} color={on ? "var(--ink)" : "var(--faint)"} />
                 <span
-                  className={`${styles.tick} ${active ? styles.tickActive : ""}`}
+                  className={styles.tick}
+                  style={{ background: on ? "var(--ink)" : "transparent" }}
                 />
               </Link>
             );
           })}
         </nav>
       </div>
+
+      <Overlays />
     </div>
   );
 }

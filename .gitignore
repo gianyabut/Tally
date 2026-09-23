@@ -45,3 +45,6 @@ next-env.d.ts
 # supabase CLI local state
 supabase/.temp
 supabase/.branches
+
+# design-QA screenshots (scripts/visual)
+/.visual

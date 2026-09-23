@@ -12,7 +12,8 @@ export type TeamMember = {
   vl_left: number;
   sl_left: number;
   il_avail: number;
-  hol_summary: string;
+  il_earned: number; // credited IL days from holiday work
+  ot_days: number; // credited OT day count
 };
 
 export type Invite = {
@@ -50,8 +51,19 @@ export async function getTeamData(year: number): Promise<{
       .order("created_at", { ascending: true }),
   ]);
 
+  // Postgres numerics arrive as strings — normalise to numbers.
+  const rows = (membersRes.data as Record<string, unknown>[] | null) ?? [];
+  const members: TeamMember[] = rows.map((r) => ({
+    ...(r as unknown as TeamMember),
+    vl_left: Number(r.vl_left),
+    sl_left: Number(r.sl_left),
+    il_avail: Number(r.il_avail),
+    il_earned: Number(r.il_earned ?? 0),
+    ot_days: Number(r.ot_days ?? 0),
+  }));
+
   return {
-    members: (membersRes.data as TeamMember[] | null) ?? [],
+    members,
     invites: (invitesRes.data as Invite[] | null) ?? [],
   };
 }

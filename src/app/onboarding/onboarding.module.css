@@ -1,11 +1,15 @@
+/* Onboarding — ported 1:1 from docs/Tally App.dc.html (isStart / isSetup /
+   isInvite). Full-bleed up to 1440px (top of the supported 390–1440 range),
+   centered beyond that. `container-type` makes the prototype's cqw units
+   resolve against this frame, exactly as they do in the design. */
 .screen {
-  flex: 1;
   min-height: 100dvh;
   display: flex;
   flex-direction: column;
   width: 100%;
-  max-width: 860px;
+  max-width: 1440px;
   margin: 0 auto;
+  container-type: inline-size;
 }
 
 .header {
@@ -14,6 +18,7 @@
   padding: 0 clamp(20px, 4cqw, 44px);
   height: 58px;
   border-bottom: 1px solid var(--line);
+  flex: none;
 }
 .brand {
   display: flex;
@@ -33,11 +38,6 @@
   color: var(--faint);
 }
 
-.body {
-  flex: 1;
-  padding: 44px clamp(20px, 4cqw, 44px) 0;
-  width: 100%;
-}
 .eyebrow {
   font-family: var(--font-mono), monospace;
   font-size: 11px;
@@ -49,13 +49,163 @@
   font-weight: 700;
   margin-top: 8px;
 }
+
+/* ---------- Steps 1 + 3: vertically centered column ---------- */
+.bodyCenter {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 32px clamp(20px, 4cqw, 44px);
+  max-width: 640px;
+  width: 100%;
+}
+
+/* Step 1 — fork cards */
+.cards {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 24px;
+}
+.card {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 18px 20px;
+  border: 1px solid var(--hair);
+  border-radius: 6px;
+}
+.cardQuiet {
+  border-color: var(--line);
+}
+.card:hover {
+  border-color: var(--dim);
+}
+.cardTitleRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.cardTitle {
+  font-size: 15px;
+  font-weight: 700;
+}
+.badge {
+  font-family: var(--font-mono), monospace;
+  font-size: 9.5px;
+  letter-spacing: 0.08em;
+  color: var(--sig);
+  border: 1px dashed var(--sig);
+  border-radius: 3px;
+  padding: 2px 7px;
+}
+.cardMeta {
+  font-family: var(--font-mono), monospace;
+  font-size: 11px;
+  color: var(--dim);
+  margin-top: 6px;
+}
+.consent {
+  font-family: var(--font-mono), monospace;
+  font-size: 10px;
+  color: var(--faint);
+  margin-top: 20px;
+  line-height: 1.8;
+}
+
+/* Step 3 — invite workmates */
+.subtitleSm {
+  font-size: 13px;
+  color: var(--mut);
+  margin-top: 6px;
+  line-height: 1.6;
+}
+.inviteRow {
+  display: flex;
+  gap: 10px;
+  margin-top: 22px;
+}
+.emailInput {
+  flex: 1;
+  min-width: 0;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--hair);
+  color: var(--ink);
+  font-family: var(--font-mono), monospace;
+  font-size: 13.5px;
+  padding: 10px 0 8px;
+}
+.emailInput::placeholder {
+  color: var(--dim);
+}
+.emailInput:focus {
+  border-bottom-color: var(--dim);
+}
+.addBtn {
+  padding: 10px 16px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  font-weight: 600;
+  font-size: 13px;
+  align-self: center;
+}
+.addBtn:hover,
+.chip:hover {
+  border-color: var(--dim);
+}
+.chips {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 14px;
+}
+.chip {
+  font-family: var(--font-mono), monospace;
+  font-size: 12px;
+  border: 1px solid var(--hair);
+  border-radius: 4px;
+  padding: 6px 10px;
+}
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  margin-top: 28px;
+}
+.primaryLg {
+  padding: 13px 24px;
+  border-radius: 4px;
+  background: var(--btnbg);
+  color: var(--btnfg);
+  font-weight: 600;
+  font-size: 14px;
+}
+.skip {
+  font-size: 13px;
+  color: var(--dim);
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+}
+.skip:hover {
+  color: var(--ink);
+}
+
+/* ---------- Step 2: credits ---------- */
+.body {
+  flex: 1;
+  padding: 44px clamp(20px, 4cqw, 44px) 0;
+  max-width: 760px;
+  width: 100%;
+}
 .subtitle {
   font-size: 13.5px;
   color: var(--mut);
   margin-top: 6px;
   line-height: 1.6;
 }
-
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
@@ -96,12 +246,11 @@
   border-radius: 4px;
   color: var(--mut);
   font-family: var(--font-mono), monospace;
-  transition: border-color 0.12s ease;
+  font-size: 16px;
 }
 .stepBtn:hover {
   border-color: var(--dim);
 }
-
 .holidays {
   display: flex;
   align-items: center;
@@ -116,6 +265,7 @@
   width: 6px;
   height: 6px;
   background: var(--ink);
+  flex: none;
 }
 .holidaysLabel {
   font-size: 13.5px;
@@ -126,13 +276,13 @@
   font-size: 11.5px;
   color: var(--faint);
 }
-
 .footer {
   display: flex;
   align-items: center;
   padding: 18px clamp(20px, 4cqw, 44px);
   border-top: 1px solid var(--line);
   margin-top: 40px;
+  flex: none;
 }
 .footerNote {
   font-size: 12px;
@@ -146,18 +296,34 @@
   color: var(--btnfg);
   font-weight: 600;
   font-size: 14px;
-  transition: opacity 0.12s ease;
 }
-.primary:hover {
+.primary:hover,
+.primaryLg:hover {
   opacity: 0.85;
 }
-.primary:disabled {
+.primary:disabled,
+.primaryLg:disabled,
+.skip:disabled {
   opacity: 0.5;
+  cursor: default;
 }
 
-.error {
-  font-family: var(--font-mono), monospace;
-  font-size: 11px;
-  color: var(--sig);
-  margin-top: 12px;
+/* Toast — same chip as the in-app toasts */
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: 24px;
+  transform: translateX(-50%);
+  z-index: 70;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 18px;
+  background: var(--btnbg);
+  color: var(--btnfg);
+  border-radius: 4px;
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.4);
+  max-width: calc(100% - 40px);
+  font-size: 13px;
+  font-weight: 600;
 }

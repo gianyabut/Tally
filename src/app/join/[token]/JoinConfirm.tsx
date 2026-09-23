@@ -24,7 +24,7 @@ export function JoinConfirm({
     setError(null);
     startTransition(async () => {
       const res = await acceptInvite(token);
-      if (res.ok) router.replace("/ledger");
+      if (res.ok) router.replace("/ledger?welcome=moved");
       else setError(res.error.toUpperCase());
     });
   }

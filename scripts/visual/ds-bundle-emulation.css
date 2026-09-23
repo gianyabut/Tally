@@ -1,0 +1,7 @@
+/* Stand-in for docs/_ds/…/_ds_bundle.css, which the prototype links but the
+   handoff doesn't include. The designer's mockups render with a standard
+   reset — verified against their screenshots: global border-box (fields span
+   760−88=672px, fork cards 640−88=552px) and line-height 1.5 (83px cards). */
+*, *::before, *::after { box-sizing: border-box; }
+body { line-height: 1.5; }
+input, button, textarea, select { font: inherit; }
