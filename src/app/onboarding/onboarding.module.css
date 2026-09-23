@@ -3,6 +3,9 @@
   min-height: 100dvh;
   display: flex;
   flex-direction: column;
+  width: 100%;
+  max-width: 860px;
+  margin: 0 auto;
 }
 
 .header {
@@ -33,7 +36,6 @@
 .body {
   flex: 1;
   padding: 44px clamp(20px, 4cqw, 44px) 0;
-  max-width: 760px;
   width: 100%;
 }
 .eyebrow {

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Logo } from "@/components/Logo";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { FISCAL_YEAR } from "@/lib/types";
 import { useAppData, useModal } from "./runtime";
 import styles from "./AppShell.module.css";
@@ -134,6 +135,7 @@ export function AppShell({
             ⌘K
           </button>
           <span className={styles.fy}>FY{FISCAL_YEAR}</span>
+          <ThemeToggle />
           <div className={styles.avatar}>{avatar}</div>
         </div>
       </header>
@@ -155,6 +157,7 @@ export function AppShell({
             {hasNotif && <span className={styles.notifDot} />}
           </button>
           <span className={styles.fy}>FY{FISCAL_YEAR}</span>
+          <ThemeToggle size={30} />
           <div className={styles.avatar}>{avatar}</div>
         </div>
       </header>

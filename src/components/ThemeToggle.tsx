@@ -3,32 +3,31 @@
 import { useTheme } from "@/lib/theme/ThemeProvider";
 
 /**
- * Minimal mono theme switch, pinned bottom-right. Temporary affordance until
- * the in-app avatar menu carries theme selection.
+ * Compact inline theme switch, sized to sit in a header row next to the bell /
+ * ⌘K chip / avatar. Self-styled with tokens so it looks consistent anywhere.
  */
-export function ThemeToggle() {
+export function ThemeToggle({ size = 32 }: { size?: number }) {
   const { theme, toggleTheme } = useTheme();
   return (
     <button
       type="button"
       onClick={toggleTheme}
       aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} theme`}
+      title={`Switch to ${theme === "dark" ? "light" : "dark"} theme`}
       style={{
-        position: "fixed",
-        right: 16,
-        bottom: 16,
-        zIndex: 100,
-        fontFamily: "var(--font-mono), monospace",
-        fontSize: 10,
-        letterSpacing: "0.16em",
-        color: "var(--dim)",
+        width: size,
+        height: size,
+        display: "grid",
+        placeItems: "center",
         border: "1px solid var(--line)",
         borderRadius: 4,
-        padding: "7px 10px",
-        background: "var(--bg)",
+        color: "var(--dim)",
+        background: "transparent",
+        fontSize: 13,
+        lineHeight: 1,
       }}
     >
-      {theme === "dark" ? "◐ LIGHT" : "◑ DARK"}
+      {theme === "dark" ? "◐" : "◑"}
     </button>
   );
 }

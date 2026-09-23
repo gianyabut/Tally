@@ -1,7 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { plexSans, plexMono } from "@/lib/fonts";
 import { themeNoFlashScript } from "@/lib/theme/ThemeProvider";
-import { ThemeToggle } from "@/components/ThemeToggle";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -29,7 +28,6 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       </head>
       <body>
         {children}
-        <ThemeToggle />
       </body>
     </html>
   );

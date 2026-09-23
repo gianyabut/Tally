@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { Logo } from "@/components/Logo";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { FISCAL_YEAR } from "@/lib/types";
 import { completeSoloOnboarding } from "./actions";
 import styles from "./onboarding.module.css";
@@ -79,7 +80,19 @@ export function CreditsSetup({ firstName }: { firstName: string }) {
           <Logo size={17} strokeWidth={2.4} />
           <span className={styles.brandName}>TALLY</span>
         </div>
-        <span className={styles.step}>SET UP YOUR LEDGER</span>
+        <div
+          style={{
+            marginLeft: "auto",
+            display: "flex",
+            alignItems: "center",
+            gap: 14,
+          }}
+        >
+          <span className={styles.step} style={{ marginLeft: 0 }}>
+            SET UP YOUR LEDGER
+          </span>
+          <ThemeToggle size={30} />
+        </div>
       </div>
 
       <div className={styles.body}>
