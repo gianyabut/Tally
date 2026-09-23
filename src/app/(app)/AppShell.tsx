@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Logo } from "@/components/Logo";
 import { FISCAL_YEAR } from "@/lib/types";
+import { useModal } from "./runtime";
 import styles from "./AppShell.module.css";
 
 type Tab = { href: string; label: string };
@@ -86,6 +87,7 @@ export function AppShell({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const { open } = useModal();
   const isActive = (href: string) =>
     pathname === href || pathname.startsWith(href + "/");
   const avatar = initials(name);
@@ -115,7 +117,12 @@ export function AppShell({
           <button type="button" className={styles.iconBtn} aria-label="Notifications" title="Notifications — coming soon">
             <BellIcon />
           </button>
-          <button type="button" className={styles.cmdChip} title="Quick actions — coming soon">
+          <button
+            type="button"
+            className={styles.cmdChip}
+            onClick={() => open("palette")}
+            title="Quick actions"
+          >
             ⌘K
           </button>
           <span className={styles.fy}>FY{FISCAL_YEAR}</span>
@@ -142,7 +149,12 @@ export function AppShell({
 
       {/* Mobile bottom bar + FAB */}
       <div className={styles.bottomWrap}>
-        <button type="button" className={styles.fab} aria-label="Quick actions" title="Quick actions — coming soon">
+        <button
+          type="button"
+          className={styles.fab}
+          onClick={() => open("palette")}
+          aria-label="Quick actions"
+        >
           ＋
         </button>
         <nav className={styles.bottomBar}>
