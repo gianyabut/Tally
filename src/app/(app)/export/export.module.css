@@ -1,0 +1,263 @@
+.wrap {
+  flex: 1;
+  display: flex;
+  flex-wrap: wrap;
+  padding-bottom: 84px;
+}
+@media (min-width: 768px) {
+  .wrap {
+    padding-bottom: 0;
+    flex-wrap: nowrap;
+  }
+}
+
+/* ---------- Controls ---------- */
+.controls {
+  width: 100%;
+  padding: clamp(20px, 3vw, 36px) clamp(20px, 3vw, 36px) 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  box-sizing: border-box;
+}
+@media (min-width: 768px) {
+  .controls {
+    width: min(360px, 40%);
+    border-right: 1px solid var(--line);
+    min-height: calc(100dvh - 60px);
+  }
+}
+.eyebrow {
+  font-family: var(--font-mono), monospace;
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  color: var(--faint);
+}
+.groupLabel {
+  font-family: var(--font-mono), monospace;
+  font-size: 10.5px;
+  letter-spacing: 0.16em;
+  color: var(--mut);
+  margin-bottom: 8px;
+}
+.yearTabs {
+  display: flex;
+  gap: 18px;
+  font-family: var(--font-mono), monospace;
+  font-size: 13.5px;
+}
+.yearActive {
+  font-weight: 500;
+  border-bottom: 2px solid var(--ink);
+  padding-bottom: 5px;
+}
+.yearInactive {
+  color: var(--faint);
+  padding-bottom: 5px;
+}
+.optRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 0;
+  border-bottom: 1px solid var(--row);
+  min-height: 44px;
+  cursor: pointer;
+  box-sizing: border-box;
+}
+.optMark {
+  font-family: var(--font-mono), monospace;
+  font-size: 13px;
+  width: 14px;
+}
+.optText {
+  font-size: 13.5px;
+}
+.hint {
+  font-family: var(--font-mono), monospace;
+  font-size: 11px;
+  color: var(--faint);
+}
+.filename {
+  font-family: var(--font-mono), monospace;
+  font-size: 11px;
+  color: var(--faint);
+  margin-bottom: 12px;
+}
+.genBtn {
+  height: 46px;
+  border-radius: 4px;
+  border: 1px solid var(--hair);
+  display: grid;
+  place-items: center;
+  font-weight: 600;
+  font-size: 14px;
+  width: 100%;
+  transition: opacity 0.12s ease;
+}
+.genBtn:hover {
+  opacity: 0.9;
+}
+.genFooter {
+  margin-top: auto;
+}
+
+/* ---------- Paper preview ---------- */
+.preview {
+  flex: 1.4;
+  min-width: min(440px, 100%);
+  display: grid;
+  place-items: start center;
+  padding: 32px 20px;
+}
+.paper {
+  width: min(440px, 100%);
+  box-sizing: border-box;
+  background: var(--paper);
+  color: #1a1f2e;
+  border-radius: 2px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+  padding: 32px 36px;
+  font-size: 10px;
+  font-family: var(--font-sans), sans-serif;
+}
+.pHeader {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding-bottom: 13px;
+  border-bottom: 2px solid #1a1f2e;
+}
+.pBrand {
+  font-weight: 700;
+  font-size: 12.5px;
+  letter-spacing: 0.05em;
+}
+.pDate {
+  margin-left: auto;
+  font-family: var(--font-mono), monospace;
+  font-size: 9px;
+  color: #666;
+}
+.pMeta {
+  display: flex;
+  gap: 22px;
+  padding: 13px 0;
+  border-bottom: 1px solid #ddd;
+  flex-wrap: wrap;
+}
+.pMetaLabel {
+  font-size: 8px;
+  letter-spacing: 0.1em;
+  color: #888;
+}
+.pMetaBold {
+  font-weight: 700;
+  font-size: 11.5px;
+  margin-top: 2px;
+}
+.pMetaMono {
+  font-family: var(--font-mono), monospace;
+  font-size: 10.5px;
+  margin-top: 2px;
+}
+.pStats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  padding: 12px 0;
+  border-bottom: 1px solid #ddd;
+  text-align: center;
+}
+.pStatNum {
+  font-family: var(--font-mono), monospace;
+  font-size: 14px;
+  font-weight: 500;
+}
+.pStatSub {
+  font-size: 9px;
+  color: #888;
+}
+.pStatLabel {
+  font-size: 8px;
+  color: #888;
+  margin-top: 2px;
+}
+.pSection {
+  padding: 11px 0 2px;
+}
+.pSectionHead {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin-bottom: 5px;
+}
+.pSectionNum {
+  font-family: var(--font-mono), monospace;
+  font-size: 8px;
+  color: #999;
+}
+.pSectionTitle {
+  font-size: 8px;
+  letter-spacing: 0.12em;
+  color: #555;
+  font-weight: 600;
+}
+.pLeaveRow {
+  display: grid;
+  grid-template-columns: 58px 90px 1fr 38px;
+  gap: 2px 10px;
+  font-size: 9px;
+  padding: 1.5px 0;
+  border-bottom: 1px dotted #eee;
+}
+.pHolRow {
+  display: grid;
+  grid-template-columns: 44px 1fr 52px 44px;
+  gap: 2px 10px;
+  font-size: 9px;
+  padding: 1.5px 0;
+  border-bottom: 1px dotted #eee;
+}
+.pMono {
+  font-family: var(--font-mono), monospace;
+  color: #666;
+}
+.pThumbs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.pThumb {
+  width: 86px;
+}
+.pThumbBox {
+  height: 54px;
+  border: 1px solid #ddd;
+  border-radius: 2px;
+  background: linear-gradient(135deg, #eceae4, #d8d5cc);
+  display: grid;
+  place-items: center;
+}
+.pThumbCap {
+  font-family: var(--font-mono), monospace;
+  font-size: 7.5px;
+  color: #555;
+  margin-top: 3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.pThumbCap2 {
+  font-family: var(--font-mono), monospace;
+  font-size: 7.5px;
+  color: #999;
+}
+.pFooter {
+  margin-top: 11px;
+  padding-top: 9px;
+  border-top: 1px solid #ddd;
+  display: flex;
+  font-size: 8.5px;
+  color: #888;
+}

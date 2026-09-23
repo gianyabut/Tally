@@ -1,17 +1,29 @@
-import styles from "../page.module.css";
+import { redirect } from "next/navigation";
+import { createClient } from "@/lib/supabase/server";
+import {
+  buildReportData,
+  DEFAULT_INCLUDES,
+} from "@/lib/pdf/report-data";
+import { FISCAL_YEAR } from "@/lib/types";
+import { ExportView } from "./ExportView";
 
-export default function ExportPage() {
-  return (
-    <div className={styles.empty}>
-      <div>
-        <div className={styles.emptyEyebrow}>EXPORT FOR HR</div>
-        <div className={styles.emptyTitle}>Your annual PDF report</div>
-        <div className={styles.emptyBody}>
-          ONE PDF PER PERSON-YEAR — SUMMARY, LEAVES, HOLIDAY WORK, PROOF.
-          <br />
-          PDF GENERATION — MILESTONE 4.
-        </div>
-      </div>
-    </div>
-  );
+export default async function ExportPage() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+
+  const [data, privRes, countRes] = await Promise.all([
+    buildReportData(supabase, user.id, FISCAL_YEAR, DEFAULT_INCLUDES),
+    supabase.rpc("is_privileged"),
+    supabase
+      .from("memberships")
+      .select("user_id", { count: "exact", head: true }),
+  ]);
+
+  const canTeam = privRes.data === true;
+  const teamCount = countRes.count ?? 1;
+
+  return <ExportView data={data} canTeam={canTeam} teamCount={teamCount} />;
 }
