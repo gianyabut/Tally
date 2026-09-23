@@ -1,0 +1,74 @@
+.pad {
+  padding: clamp(20px, 3cqw, 36px) clamp(20px, 4cqw, 44px);
+}
+
+/* Ledger balances header */
+.balLabel {
+  font-family: var(--font-mono), monospace;
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  color: var(--dim);
+}
+.balTotal {
+  font-family: var(--font-mono), monospace;
+  font-size: clamp(52px, 8cqw, 64px);
+  font-weight: 500;
+  line-height: 1.15;
+}
+.balCaption {
+  font-family: var(--font-mono), monospace;
+  font-size: 10.5px;
+  color: var(--faint);
+}
+
+/* Milestone placeholder note */
+.note {
+  margin: 8px clamp(20px, 4cqw, 44px);
+  padding: 22px;
+  border: 1px solid var(--hair);
+  border-radius: 4px;
+}
+.noteEyebrow {
+  font-family: var(--font-mono), monospace;
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  color: var(--ring2);
+}
+.noteTitle {
+  font-size: 15px;
+  font-weight: 600;
+  margin-top: 8px;
+}
+.noteBody {
+  font-size: 13px;
+  color: var(--mut);
+  margin-top: 4px;
+  line-height: 1.6;
+}
+
+/* Generic empty/placeholder screen */
+.empty {
+  flex: 1;
+  display: grid;
+  place-items: center;
+  padding: 48px 24px;
+  text-align: center;
+}
+.emptyEyebrow {
+  font-family: var(--font-mono), monospace;
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  color: var(--faint);
+}
+.emptyTitle {
+  font-size: 18px;
+  font-weight: 700;
+  margin-top: 8px;
+}
+.emptyBody {
+  font-family: var(--font-mono), monospace;
+  font-size: 11px;
+  color: var(--dim);
+  margin-top: 8px;
+  line-height: 1.7;
+}
