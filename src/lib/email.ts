@@ -2,8 +2,12 @@ import "server-only";
 
 const RESEND_API_KEY = process.env.RESEND_API_KEY ?? "";
 const FROM = process.env.INVITE_FROM_EMAIL ?? "Tally <invites@example.com>";
+// Server-only, so it needs no NEXT_PUBLIC_ prefix; the prefixed name is kept
+// as a fallback for existing envs.
 const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+  process.env.SITE_URL ??
+  process.env.NEXT_PUBLIC_SITE_URL ??
+  "http://localhost:3000";
 
 export const isEmailConfigured = Boolean(RESEND_API_KEY);
 
