@@ -46,14 +46,18 @@ export function FileLeaveModal() {
   const [end, setEnd] = useState(start);
   const [picking, setPicking] = useState<"first" | "last">("first");
   const [month, setMonth] = useState(start.slice(0, 7));
+  const [halfLast, setHalfLast] = useState(false);
   const [source, setSource] = useState<Source>("vl");
   const [note, setNote] = useState("");
 
-  // What actually gets filed: the working days inside the range. The server
-  // re-derives the end from (first working day, days), so send that start.
-  const days = workingDaysBetween(start, end, holidaySet);
-  const first = days > 0 ? nextWorkingDay(start, holidaySet) : start;
-  const last = days > 0 ? leaveEnd(first, days, holidaySet) : end;
+  // What actually gets filed: the working days inside the range, minus half of
+  // the last one if toggled. The server re-derives the end from (first working
+  // day, days) — rounding a half up — so send that start.
+  const whole = workingDaysBetween(start, end, holidaySet);
+  const half = halfLast && whole > 0;
+  const days = half ? whole - 0.5 : whole;
+  const first = whole > 0 ? nextWorkingDay(start, holidaySet) : start;
+  const last = whole > 0 ? leaveEnd(first, whole, holidaySet) : end;
   const selected = SOURCES.find((s) => s.source === source)!;
 
   function tap(d: string) {
@@ -160,6 +164,7 @@ export function FileLeaveModal() {
                     title={holidayName.get(d)}
                   >
                     {Number(d.slice(8))}
+                    {half && d === last && <span className={styles.calHalf}>½</span>}
                   </button>
                 );
               })}
@@ -170,8 +175,29 @@ export function FileLeaveModal() {
           <div className={styles.calSum}>
             <span className={styles.calSumN}>{fmt(days)}</span>
             <span className={styles.calSumText}>
-              WORKING {days === 1 ? "DAY" : "DAYS"} · {dateRange(first, last).toUpperCase()}
+              WORKING {days <= 1 ? "DAY" : "DAYS"}
+              <span className={styles.deskOnly}> · </span>
+              <span className={styles.calSumRange}>{dateRange(first, last).toUpperCase()}</span>
             </span>
+            <div className={styles.seg} role="group" aria-label="Last day">
+              <button
+                type="button"
+                className={`${styles.segBtn} ${half ? "" : styles.segOn}`}
+                aria-pressed={!half}
+                onClick={() => setHalfLast(false)}
+              >
+                FULL
+              </button>
+              <button
+                type="button"
+                className={`${styles.segBtn} ${half ? styles.segOn : ""}`}
+                aria-pressed={half}
+                disabled={whole === 0}
+                onClick={() => setHalfLast(true)}
+              >
+                {whole === 1 ? "½ DAY" : "½ LAST DAY"}
+              </button>
+            </div>
           </div>
 
           <div>

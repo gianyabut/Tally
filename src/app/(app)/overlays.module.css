@@ -312,9 +312,14 @@
   color: var(--faint);
   margin-top: 8px;
 }
+.calHalf {
+  font-size: 9px;
+  vertical-align: super;
+  margin-left: 1px;
+}
 .calSum {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   gap: 10px;
   padding: 10px 12px;
   background: var(--row);
@@ -329,6 +334,34 @@
   font-size: 10.5px;
   letter-spacing: 0.14em;
   color: var(--mut);
+}
+/* FULL | ½ LAST DAY — halves the leave's last working day. */
+.seg {
+  margin-left: auto;
+  display: flex;
+  flex: none;
+  border: 1px solid var(--hair);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.segBtn {
+  padding: 6px 11px;
+  font-family: var(--font-mono), monospace;
+  font-size: 10.5px;
+  letter-spacing: 0.12em;
+  color: var(--dim);
+}
+.segBtn + .segBtn {
+  border-left: 1px solid var(--hair);
+}
+.segBtn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.segOn {
+  background: var(--btnbg);
+  color: var(--btnfg);
+  font-weight: 500;
 }
 .mobOnly {
   display: none;
@@ -355,6 +388,12 @@
   }
   .calGrid {
     grid-template-columns: repeat(7, 44px);
+  }
+  .segBtn {
+    padding: 11px 14px;
+  }
+  .calSumRange {
+    display: block;
   }
   .deskOnly {
     display: none;
