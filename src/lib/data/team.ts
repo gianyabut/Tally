@@ -1,5 +1,6 @@
 import "server-only";
 import { createClient } from "@/lib/supabase/server";
+import { getAuth } from "@/lib/auth";
 import type { Role } from "@/lib/types";
 
 export type TeamMember = {
@@ -69,28 +70,17 @@ export async function getTeamData(year: number): Promise<{
 }
 
 export async function getUnreadNotifications(): Promise<NotificationItem[]> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return [];
+  const auth = await getAuth();
+  if (!auth) return [];
+  const { supabase, userId } = auth;
 
   const { data } = await supabase
     .from("notifications")
     .select("id,type,payload,created_at")
-    .eq("user_id", user.id)
+    .eq("user_id", userId)
     .is("read_at", null)
     .order("created_at", { ascending: false });
 
   return (data as NotificationItem[] | null) ?? [];
 }
 
-export async function getTeamName(teamId: string): Promise<string> {
-  const supabase = await createClient();
-  const { data } = await supabase
-    .from("teams")
-    .select("name")
-    .eq("id", teamId)
-    .maybeSingle();
-  return (data?.name as string | undefined) ?? "Your team";
-}

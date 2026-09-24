@@ -1,5 +1,5 @@
 import "server-only";
-import { createClient } from "@/lib/supabase/server";
+import { getAuth } from "@/lib/auth";
 import type { YearSettings } from "@/lib/types";
 import type { Entry, Holiday } from "@/lib/ledger/types";
 import { todayIso } from "@/lib/ledger/dates";
@@ -7,16 +7,14 @@ import { todayIso } from "@/lib/ledger/dates";
 export async function getYearSettings(
   year: number,
 ): Promise<YearSettings | null> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return null;
+  const auth = await getAuth();
+  if (!auth) return null;
+  const { supabase, userId } = auth;
 
   const { data } = await supabase
     .from("year_settings")
     .select("*")
-    .eq("user_id", user.id)
+    .eq("user_id", userId)
     .eq("year", year)
     .maybeSingle();
 
@@ -44,11 +42,8 @@ type ProofRow = {
 };
 
 export async function getLedgerData(year: number): Promise<LedgerData> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) {
+  const auth = await getAuth();
+  if (!auth) {
     return {
       yearSettings: null,
       entries: [],
@@ -56,12 +51,13 @@ export async function getLedgerData(year: number): Promise<LedgerData> {
       nextHoliday: null,
     };
   }
+  const { supabase, userId } = auth;
 
   const [ysRes, entryRes, holRes] = await Promise.all([
     supabase
       .from("year_settings")
       .select("*")
-      .eq("user_id", user.id)
+      .eq("user_id", userId)
       .eq("year", year)
       .maybeSingle(),
     supabase
@@ -69,7 +65,7 @@ export async function getLedgerData(year: number): Promise<LedgerData> {
       .select(
         "*, proof:proofs(id,file_path,file_name,size_bytes)",
       )
-      .eq("user_id", user.id)
+      .eq("user_id", userId)
       .eq("year", year)
       .order("date_start", { ascending: false })
       .order("created_at", { ascending: false }),

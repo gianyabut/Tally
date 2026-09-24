@@ -65,6 +65,8 @@ export async function buildReportData(
   userId: string,
   year: number,
   includes: Includes,
+  /** Sign proof URLs for embedding (PDF only — the on-screen preview doesn't need them). */
+  signProofs = true,
 ): Promise<ReportData> {
   const [
     { data: profile },
@@ -165,9 +167,9 @@ export async function buildReportData(
     let page = FIRST_PROOF_PAGE - 1;
     for (const e of withProof) {
       const path = e.proof!.file_path;
-      const { data: signed } = await supabase.storage
-        .from("proofs")
-        .createSignedUrl(path, 60 * 10);
+      const { data: signed } = signProofs
+        ? await supabase.storage.from("proofs").createSignedUrl(path, 60 * 10)
+        : { data: null };
       proofs.push({
         page: `P.${++page}`,
         file: e.proof!.file_name,

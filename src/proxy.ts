@@ -36,8 +36,9 @@ export async function proxy(request: NextRequest) {
     },
   });
 
-  // Touch auth; refreshes the token if it's near expiry.
-  await supabase.auth.getUser();
+  // Refreshes the session if it's near expiry. getClaims() verifies the JWT
+  // locally (asymmetric keys) instead of a round-trip to the Auth server.
+  await supabase.auth.getClaims();
 
   return response;
 }
