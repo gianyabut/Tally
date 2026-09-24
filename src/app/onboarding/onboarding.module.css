@@ -82,6 +82,18 @@
 .card:hover {
   border-color: var(--dim);
 }
+.cardDisabled,
+.cardDisabled:hover {
+  border-color: var(--line);
+  cursor: default;
+}
+.cardDisabled .cardTitle {
+  color: var(--dim);
+}
+.badge.badgeQuiet {
+  color: var(--faint);
+  border-color: var(--faint);
+}
 .cardTitleRow {
   display: flex;
   align-items: center;

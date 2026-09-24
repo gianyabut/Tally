@@ -23,8 +23,8 @@ export default async function OnboardingPage({
   // Already set up — no re-onboarding.
   if (boot.membership) redirect("/ledger");
 
-  // A pending invite (from a /join link's token, else matched by email) turns
-  // on step 1 — "How are you starting?". No invite → straight to the solo path.
+  // A pending invite (from a /join link's token, else matched by email) fills
+  // step 1's "Join" option; without one that option shows how to get invited.
   const { invite: token } = await searchParams;
   const supabase = await createClient();
   const { data } = await supabase.rpc(

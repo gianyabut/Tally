@@ -61,7 +61,7 @@ function Field({
 
 /**
  * The three onboarding steps from the design:
- *   1. "How are you starting?" — only when an invite was found (APP_FLOW)
+ *   1. "How are you starting?" — join (if invited) or start solo
  *   2. credits setup
  *   3. "Invite your workmates" — solo path only, optional
  */
@@ -74,7 +74,7 @@ export function Onboarding({
   email: string;
   invite: PendingInvite | null;
 }) {
-  const [step, setStep] = useState<Step>(invite ? "start" : "setup");
+  const [step, setStep] = useState<Step>("start");
   const [joined, setJoined] = useState(false);
   const [vl, setVl] = useState(15);
   const [sl, setSl] = useState(15);
@@ -85,12 +85,10 @@ export function Onboarding({
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [pending, startTransition] = useTransition();
 
-  // The fork only exists when an invite was found; the invite step only on
-  // the solo path. Before a choice is made the solo path is assumed (as in
-  // the prototype: "STEP 1 OF 3").
-  const offset = invite ? 1 : 0;
-  const total = joined ? 2 : 2 + offset;
-  const stepNum = step === "start" ? 1 : step === "setup" ? 1 + offset : 2 + offset;
+  // Three steps on the solo path (fork → credits → invite), two when joining.
+  // Before a choice is made the solo path is assumed, as in the prototype.
+  const total = joined ? 2 : 3;
+  const stepNum = step === "start" ? 1 : step === "setup" ? 2 : 3;
 
   function flash(msg: string) {
     setToast(msg);
@@ -145,29 +143,52 @@ export function Onboarding({
         <span className={styles.step}>{`STEP ${stepNum} OF ${total}`}</span>
       </header>
 
-      {step === "start" && invite && (
+      {step === "start" && (
         <div className={styles.bodyCenter}>
-          <div className={styles.eyebrow}>{`SIGNED IN AS ${email.toUpperCase()}`}</div>
+          <div
+            className={styles.eyebrow}
+          >{`SIGNED IN AS ${email.toUpperCase()}`}</div>
           <div className={styles.title}>How are you starting?</div>
           <div className={styles.cards}>
-            <button
-              type="button"
-              className={styles.card}
-              onClick={() => {
-                setJoined(true);
-                setStep("setup");
-              }}
-            >
-              <div className={styles.cardTitleRow}>
-                <span className={styles.cardTitle}>{`Join ${invite.teamName}`}</span>
-                <span className={styles.badge}>INVITE FOUND</span>
+            {invite ? (
+              <button
+                type="button"
+                className={styles.card}
+                onClick={() => {
+                  setJoined(true);
+                  setStep("setup");
+                }}
+              >
+                <div className={styles.cardTitleRow}>
+                  <span
+                    className={styles.cardTitle}
+                  >{`Join ${invite.teamName}`}</span>
+                  <span className={styles.badge}>INVITE FOUND</span>
+                </div>
+                <div className={styles.cardMeta}>
+                  {`${shortName(invite.inviter).toUpperCase()} INVITED YOU · ${invite.memberCount} ${
+                    invite.memberCount === 1 ? "MEMBER" : "MEMBERS"
+                  } · YOU JOIN AS STAFF`}
+                </div>
+              </button>
+            ) : (
+              // No invite for this account: same card, inert, saying how to get one.
+              <div
+                className={`${styles.card} ${styles.cardDisabled}`}
+                aria-disabled="true"
+              >
+                <div className={styles.cardTitleRow}>
+                  <span className={styles.cardTitle}>Join a team</span>
+                  <span className={`${styles.badge} ${styles.badgeQuiet}`}>
+                    NO INVITE YET
+                  </span>
+                </div>
+                <div className={styles.cardMeta}>
+                  ASK YOUR ADMIN TO INVITE THIS EMAIL · OR ACCEPT LATER FROM THE
+                  BELL
+                </div>
               </div>
-              <div className={styles.cardMeta}>
-                {`${shortName(invite.inviter).toUpperCase()} INVITED YOU · ${invite.memberCount} ${
-                  invite.memberCount === 1 ? "MEMBER" : "MEMBERS"
-                } · YOU JOIN AS STAFF`}
-              </div>
-            </button>
+            )}
             <button
               type="button"
               className={`${styles.card} ${styles.cardQuiet}`}
@@ -193,14 +214,27 @@ export function Onboarding({
       {step === "setup" && (
         <>
           <div className={styles.body}>
-            <div className={styles.eyebrow}>{`WELCOME, ${firstName.toUpperCase()}`}</div>
-            <div className={styles.title}>{`Set up your ${FISCAL_YEAR} ledger`}</div>
+            <div
+              className={styles.eyebrow}
+            >{`WELCOME, ${firstName.toUpperCase()}`}</div>
+            <div
+              className={styles.title}
+            >{`Set up your ${FISCAL_YEAR} ledger`}</div>
             <div className={styles.subtitle}>
-              Your yearly credits, once. Everything else is logged as it happens.
+              Your yearly credits, once. Everything else is logged as it
+              happens.
             </div>
             <div className={styles.grid}>
-              <Field label="VACATION" value={vl} onStep={(d) => step1(setVl, d, 30)} />
-              <Field label="SICK" value={sl} onStep={(d) => step1(setSl, d, 30)} />
+              <Field
+                label="VACATION"
+                value={vl}
+                onStep={(d) => step1(setVl, d, 30)}
+              />
+              <Field
+                label="SICK"
+                value={sl}
+                onStep={(d) => step1(setSl, d, 30)}
+              />
               <Field
                 label="IL CARRY-OVER"
                 value={carry}
@@ -210,12 +244,18 @@ export function Onboarding({
             </div>
             <div className={styles.holidays}>
               <span className={styles.dot} />
-              <span className={styles.holidaysLabel}>{`Philippine holidays ${FISCAL_YEAR} preloaded`}</span>
-              <span className={styles.holidaysMeta}>18 DATES · REGULAR + SPECIAL</span>
+              <span
+                className={styles.holidaysLabel}
+              >{`Philippine holidays ${FISCAL_YEAR} preloaded`}</span>
+              <span className={styles.holidaysMeta}>
+                18 DATES · REGULAR + SPECIAL
+              </span>
             </div>
           </div>
           <div className={styles.footer}>
-            <span className={styles.footerNote}>You can change credits later</span>
+            <span className={styles.footerNote}>
+              You can change credits later
+            </span>
             <button
               type="button"
               className={styles.primary}
@@ -261,7 +301,9 @@ export function Onboarding({
                   key={`${em}-${i}`}
                   type="button"
                   className={styles.chip}
-                  onClick={() => setEmails((list) => list.filter((_, j) => j !== i))}
+                  onClick={() =>
+                    setEmails((list) => list.filter((_, j) => j !== i))
+                  }
                   aria-label={`Remove ${em}`}
                 >
                   {em} ✕
@@ -282,7 +324,9 @@ export function Onboarding({
               type="button"
               className={styles.skip}
               onClick={() =>
-                run(() => completeSoloOnboarding({ vl, sl, carry, skipped: true }))
+                run(() =>
+                  completeSoloOnboarding({ vl, sl, carry, skipped: true }),
+                )
               }
               disabled={pending}
             >
