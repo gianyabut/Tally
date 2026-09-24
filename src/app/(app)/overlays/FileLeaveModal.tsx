@@ -3,7 +3,18 @@
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { availableFor } from "@/lib/ledger/balances";
-import { leaveEnd, nextWorkingDay, shortDate, todayIso } from "@/lib/ledger/dates";
+import {
+  addMonths,
+  dateRange,
+  isWorkingDay,
+  leaveEnd,
+  longDate,
+  monthCells,
+  monthTitle,
+  nextWorkingDay,
+  todayIso,
+  workingDaysBetween,
+} from "@/lib/ledger/dates";
 import { fmt } from "@/lib/ledger/view";
 import { useAppData, useModal, useToast } from "../runtime";
 import { fileLeave } from "../actions";
@@ -17,6 +28,8 @@ const SOURCES: { key: string; label: string; source: Source; code: string }[] = 
   { key: "3", label: "In-Lieu", source: "il", code: "IL" },
   { key: "4", label: "Unpaid", source: "unpaid", code: "Unpaid" },
 ];
+const DOW = ["SU", "MO", "TU", "WE", "TH", "FR", "SA"];
+const MAX_DAYS = 30; // the server caps a single leave at 30 working days
 
 export function FileLeaveModal() {
   const { balances, holidays } = useAppData();
@@ -26,37 +39,53 @@ export function FileLeaveModal() {
   const [pending, startTransition] = useTransition();
 
   const holidaySet = useMemo(() => new Set(holidays.map((h) => h.date)), [holidays]);
+  const holidayName = useMemo(() => new Map(holidays.map((h) => [h.date, h.name])), [holidays]);
+
+  // The picked range, as tapped: first day, then last. Past months are fine.
   const [start, setStart] = useState(() => nextWorkingDay(todayIso(), holidaySet));
-  const [days, setDays] = useState(3);
+  const [end, setEnd] = useState(start);
+  const [picking, setPicking] = useState<"first" | "last">("first");
+  const [month, setMonth] = useState(start.slice(0, 7));
   const [source, setSource] = useState<Source>("vl");
   const [note, setNote] = useState("");
-  const dateInput = useRef<HTMLInputElement>(null);
 
-  const end = leaveEnd(start, days, holidaySet);
+  // What actually gets filed: the working days inside the range. The server
+  // re-derives the end from (first working day, days), so send that start.
+  const days = workingDaysBetween(start, end, holidaySet);
+  const first = days > 0 ? nextWorkingDay(start, holidaySet) : start;
+  const last = days > 0 ? leaveEnd(first, days, holidaySet) : end;
   const selected = SOURCES.find((s) => s.source === source)!;
+
+  function tap(d: string) {
+    if (picking === "first" || d < start) {
+      setStart(d);
+      setEnd(d);
+      setPicking("last");
+    } else {
+      setEnd(d);
+      setPicking("first");
+    }
+  }
 
   function confirm() {
     if (pending) return;
+    if (days === 0) return showToast("Pick at least one working day");
+    if (days > MAX_DAYS) return showToast(`${MAX_DAYS} working days max — file it as two leaves`);
+    if (first.slice(0, 4) !== last.slice(0, 4)) return showToast("File each year's days as a separate leave");
     if (source !== "unpaid" && availableFor(source, balances) < days) {
       showToast(`Not enough ${selected.code} — pick another source`);
       return;
     }
     startTransition(async () => {
-      const res = await fileLeave({ source, days, startDate: start, note });
+      const res = await fileLeave({ source, days, startDate: first, note });
       if (!res.ok) return showToast(res.error);
       close();
-      const range =
-        start === end
-          ? shortDate(start)
-          : start.slice(0, 7) === end.slice(0, 7)
-            ? `${shortDate(start)}–${Number(end.slice(8))}`
-            : `${shortDate(start)}–${shortDate(end)}`;
-      showToast(`Leave filed — ${range} (−${days.toFixed(1)} ${selected.code})`);
+      showToast(`Leave filed — ${dateRange(first, last)} (−${days.toFixed(1)} ${selected.code})`);
       router.refresh();
     });
   }
 
-  // 1–4 pick the source, Enter files.
+  // 1–4 pick the source, Enter files (unless Enter is pressing a focused button).
   const confirmRef = useRef(confirm);
   useEffect(() => {
     confirmRef.current = confirm;
@@ -66,7 +95,7 @@ export function FileLeaveModal() {
       if (typingInField(e) || e.metaKey || e.ctrlKey) return;
       const hit = SOURCES.find((s) => s.key === e.key);
       if (hit) setSource(hit.source);
-      else if (e.key === "Enter") {
+      else if (e.key === "Enter" && (e.target as HTMLElement | null)?.tagName !== "BUTTON") {
         e.preventDefault();
         confirmRef.current();
       }
@@ -78,51 +107,71 @@ export function FileLeaveModal() {
   return (
     <>
       <div className={styles.scrim} onClick={close} />
-      <div className={styles.panel} style={{ top: modal.top + 44 }} role="dialog" aria-label="File a leave">
+      <div
+        className={`${styles.panel} ${styles.leavePanel}`}
+        style={{ "--at": `${modal.top}px` } as React.CSSProperties}
+        role="dialog"
+        aria-label="File a leave"
+      >
         <div className={styles.head}>
           <div>
-            <div className={styles.headTitle}>
-              File a leave —{" "}
-              <span
-                className={styles.pick}
-                role="button"
-                tabIndex={0}
-                onClick={() => dateInput.current?.showPicker?.()}
-                onKeyDown={(e) => e.key === " " && dateInput.current?.showPicker?.()}
-              >
-                {shortDate(start)}
-                <input
-                  ref={dateInput}
-                  type="date"
-                  className={styles.pickControl}
-                  style={{ pointerEvents: "none" }}
-                  tabIndex={-1}
-                  value={start}
-                  onChange={(e) => e.target.value && setStart(e.target.value)}
-                  aria-label="First day of leave"
-                />
-              </span>{" "}
-              → {shortDate(end)}
-            </div>
-            <div className={styles.headSub}>
-              {fmt(days)} WORKING {days === 1 ? "DAY" : "DAYS"}
-            </div>
+            <div className={styles.headTitle}>File a leave</div>
+            <div className={styles.headSub}>PAST OR UPCOMING DATES</div>
           </div>
-          <button type="button" className={styles.esc} onClick={close}>
-            ESC
+          <button type="button" className={styles.esc} onClick={close} aria-label="Close">
+            <span className={styles.deskOnly}>ESC</span>
+            <span className={styles.mobOnly}>✕</span>
           </button>
         </div>
 
         <div className={`${styles.body} ${styles.bodyLeave}`}>
-          <div className={styles.daysRow}>
-            <span className={styles.fieldLabel}>DAYS</span>
-            <button type="button" className={styles.step} onClick={() => setDays((d) => Math.max(1, d - 1))} aria-label="Fewer days">
-              −
-            </button>
-            <span className={styles.stepValue}>{fmt(days)}</span>
-            <button type="button" className={styles.step} onClick={() => setDays((d) => Math.min(30, d + 1))} aria-label="More days">
-              ＋
-            </button>
+          <div className={styles.cal}>
+            <div className={styles.calNav}>
+              <button type="button" className={styles.calStep} onClick={() => setMonth((m) => addMonths(m, -1))} aria-label="Previous month">
+                ‹
+              </button>
+              <span className={styles.calMonth} aria-live="polite">
+                {monthTitle(month).toUpperCase()}
+              </span>
+              <button type="button" className={styles.calStep} onClick={() => setMonth((m) => addMonths(m, 1))} aria-label="Next month">
+                ›
+              </button>
+            </div>
+            <div className={styles.calGrid}>
+              {DOW.map((d) => (
+                <span key={d} className={styles.calDow}>
+                  {d}
+                </span>
+              ))}
+              {monthCells(month).map((d, i) => {
+                if (!d) return <span key={`blank-${i}`} />;
+                const edge = d === start || d === end;
+                const inside = d > start && d < end;
+                const off = !isWorkingDay(d, holidaySet);
+                const cls = edge ? styles.calEdge : `${inside ? styles.calIn : ""} ${off ? styles.calOff : ""}`;
+                return (
+                  <button
+                    key={d}
+                    type="button"
+                    className={`${styles.calDay} ${cls}`}
+                    onClick={() => tap(d)}
+                    aria-label={longDate(d)}
+                    aria-pressed={edge || inside}
+                    title={holidayName.get(d)}
+                  >
+                    {Number(d.slice(8))}
+                  </button>
+                );
+              })}
+            </div>
+            <div className={styles.calHint}>TAP FIRST DAY, THEN LAST · WEEKENDS &amp; HOLIDAYS DON&apos;T COUNT</div>
+          </div>
+
+          <div className={styles.calSum}>
+            <span className={styles.calSumN}>{fmt(days)}</span>
+            <span className={styles.calSumText}>
+              WORKING {days === 1 ? "DAY" : "DAYS"} · {dateRange(first, last).toUpperCase()}
+            </span>
           </div>
 
           <div>

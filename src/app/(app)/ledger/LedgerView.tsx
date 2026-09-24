@@ -108,21 +108,31 @@ export function LedgerView() {
           </div>
 
           <div className={styles.sideCol}>
-            {nextHoliday && (
-              <div className={styles.holidayCard}>
-                <div className={styles.holidayEyebrow}>
-                  NEXT HOLIDAY · T−{nextHoliday.daysUntil}D
-                </div>
-                <div className={styles.holidayName}>{nextHoliday.holiday.name}</div>
-                <div className={styles.holidayMeta}>
-                  {nextHoliday.holiday.date} · {weekday(nextHoliday.holiday.date)} ·{" "}
-                  {nextHoliday.holiday.type.toUpperCase()}
-                </div>
-                <button type="button" className={styles.holidayBtn} onClick={() => open("log")}>
-                  Log holiday work
+            <div className={styles.cardPair}>
+              <div className={styles.card}>
+                <div className={styles.cardEyebrow}>TAKING TIME OFF?</div>
+                <div className={styles.cardTitle}>File a leave</div>
+                <div className={styles.cardMeta}>PAST OR UPCOMING · ANY DATES</div>
+                <button type="button" className={styles.cardBtn} onClick={() => open("leave")}>
+                  File a leave
                 </button>
               </div>
-            )}
+              {nextHoliday && (
+                <div className={styles.card}>
+                  <div className={styles.cardEyebrow}>
+                    NEXT HOLIDAY · T−{nextHoliday.daysUntil}D
+                  </div>
+                  <div className={styles.cardTitle}>{nextHoliday.holiday.name}</div>
+                  <div className={styles.cardMeta}>
+                    {nextHoliday.holiday.date} · {weekday(nextHoliday.holiday.date)} ·{" "}
+                    {nextHoliday.holiday.type.toUpperCase()}
+                  </div>
+                  <button type="button" className={styles.cardBtnGhost} onClick={() => open("log")}>
+                    Log holiday work
+                  </button>
+                </div>
+              )}
+            </div>
             <Link href="/export" className={styles.exportRow}>
               <span className={styles.exportRowLabel}>{year} HR report</span>
               <span className={styles.exportRowCta}>Export →</span>
@@ -204,6 +214,14 @@ export function LedgerView() {
           <div className={styles.balLabel}>DAYS OFF LEFT</div>
           <div className={styles.mBalTotal}>{totalLeft}</div>
           <div className={styles.mBalCaption}>{caption}</div>
+          <div className={styles.mActions}>
+            <button type="button" className={styles.mActionBtn} onClick={() => open("leave")}>
+              File a leave
+            </button>
+            <button type="button" className={styles.mActionGhost} onClick={() => open("log")}>
+              Log holiday work
+            </button>
+          </div>
         </div>
 
         <div className={styles.mTallies}>
