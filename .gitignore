@@ -48,3 +48,4 @@ supabase/.branches
 
 # design-QA screenshots (scripts/visual)
 /.visual
+.vercel
