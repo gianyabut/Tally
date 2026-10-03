@@ -79,16 +79,23 @@ export function HolidayRuler({ ruler, step = 5 }: { ruler: RulerView; step?: num
                 {t.month}
               </text>
             )}
-            {wide && t.holiday && (
-              <text
-                x={x}
-                y={8}
-                textAnchor={anchor(i)}
-                style={{ ...mono, fill: i === nextIdx ? "var(--ink)" : "var(--faint)" }}
-              >
-                {t.date.slice(8)}
-              </text>
-            )}
+            {wide && t.holiday && !ruler.ticks[i - 1]?.holiday && (() => {
+              // Back-to-back holidays share one label ("24–25") centred on the run.
+              let end = i;
+              while (ruler.ticks[end + 1]?.holiday) end++;
+              const text =
+                end > i ? `${t.date.slice(8)}–${ruler.ticks[end].date.slice(8)}` : t.date.slice(8);
+              return (
+                <text
+                  x={(i + end) / 2 * step + c}
+                  y={8}
+                  textAnchor={anchor(i)}
+                  style={{ ...mono, fill: i === nextIdx ? "var(--ink)" : "var(--faint)" }}
+                >
+                  {text}
+                </text>
+              );
+            })()}
           </g>
         );
       })}

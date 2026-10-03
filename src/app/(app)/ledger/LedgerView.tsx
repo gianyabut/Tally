@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { HolidayRuler } from "@/components/ledger/HolidayRuler";
@@ -16,15 +16,48 @@ import {
 } from "@/lib/ledger/view";
 import { useAppData, useModal, useToast } from "../runtime";
 import { attachProof } from "../actions";
+import { typingInField } from "../overlays/keys";
+import { ActionTiles, type TileAction } from "./ActionTiles";
 import styles from "./ledger.module.css";
 
 const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? "" : "S"}`;
+/** Detail segments joined by " · ", each kept on one line. */
+const detailLine = (parts: string[]) =>
+  parts.map((p, i) => (
+    <span key={p} style={{ whiteSpace: "nowrap" }}>
+      {i > 0 && " · "}
+      {p}
+    </span>
+  ));
 const awayLabel = (days: number) =>
   days === 0 ? "TODAY" : days === 1 ? "DAY AWAY" : "DAYS AWAY";
 
 export function LedgerView() {
   const { entries, balances, nextHoliday, ahead, year, holidays } = useAppData();
-  const { open } = useModal();
+  const { open, modal } = useModal();
+
+  // L / H open File a leave / Log holiday work while no overlay is up; the
+  // matching tile replays its key-cap press.
+  const [pressed, setPressed] = useState<TileAction | null>(null);
+  useEffect(() => {
+    if (modal.kind) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (typingInField(e) || e.metaKey || e.ctrlKey || e.altKey || e.repeat) return;
+      const k = e.key.toLowerCase();
+      const action: TileAction | null = k === "l" ? "leave" : k === "h" ? "log" : null;
+      if (!action) return;
+      e.preventDefault();
+      setPressed(action);
+      open(action);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [modal.kind, open]);
+  useEffect(() => {
+    if (!pressed) return;
+    const t = setTimeout(() => setPressed(null), 320);
+    return () => clearTimeout(t);
+  }, [pressed]);
   const { showToast } = useToast();
   const router = useRouter();
   const [, startTransition] = useTransition();
@@ -121,7 +154,7 @@ export function LedgerView() {
                     </span>
                   </span>
                 </div>
-                <div className={styles.tallyDetail}>{tallyDetails[t.key]}</div>
+                <div className={styles.tallyDetail}>{detailLine(tallyDetails[t.key])}</div>
               </div>
             ))}
           </div>
@@ -144,14 +177,7 @@ export function LedgerView() {
                   </div>
                 </div>
               )}
-              <div className={styles.aheadBtns}>
-                <button type="button" className={styles.aheadBtn} onClick={() => open("leave")}>
-                  File a leave
-                </button>
-                <button type="button" className={styles.aheadBtnGhost} onClick={() => open("log")}>
-                  Log holiday work
-                </button>
-              </div>
+              <ActionTiles onAction={open} showKeys pressed={pressed} />
             </div>
             <Link href="/export" className={styles.exportRow}>
               <span className={styles.exportRowLabel}>{year} HR report</span>
@@ -256,14 +282,7 @@ export function LedgerView() {
           <div className={styles.balLabel}>DAYS OFF LEFT</div>
           <div className={styles.mBalTotal}>{totalLeft}</div>
           <div className={styles.mBalCaption}>{caption}</div>
-          <div className={styles.mActions}>
-            <button type="button" className={styles.mActionBtn} onClick={() => open("leave")}>
-              File a leave
-            </button>
-            <button type="button" className={styles.mActionGhost} onClick={() => open("log")}>
-              Log holiday work
-            </button>
-          </div>
+          <ActionTiles onAction={open} showKeys={false} pressed={null} className={styles.mTiles} />
         </div>
 
         <div className={styles.mTallies}>
@@ -280,7 +299,7 @@ export function LedgerView() {
                   </span>
                 </span>
               </div>
-              <div className={styles.mTallyDetail}>{tallyDetails[t.key]}</div>
+              <div className={styles.mTallyDetail}>{detailLine(tallyDetails[t.key])}</div>
             </div>
           ))}
         </div>

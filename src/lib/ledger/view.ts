@@ -71,13 +71,14 @@ export function buildTallyRows(b: Balances): TallyRowView[] {
 
 /**
  * One mono detail line per tally row (keyed like TallyRowView.key): where the
- * days went, split at `today` into taken vs filed ahead.
+ * days went, split at `today` into taken vs filed ahead. Returned as segments
+ * so the view can wrap between them, never inside a date.
  */
 export function buildTallyDetails(
   entries: Entry[],
   b: Balances,
   today: string,
-): Record<string, string> {
+): Record<string, string[]> {
   const mmdd = (iso: string) => iso.slice(5);
   const days = (n: number) => n.toFixed(1);
 
@@ -97,14 +98,14 @@ export function buildTallyDetails(
     const parts: string[] = [];
     if (taken > 0) parts.push(`${days(taken)} TAKEN`);
     if (next) parts.push(`${days(ahead)} FILED AHEAD`, `NEXT ${mmdd(next)}`);
-    return parts.length > 0 ? parts.join(" · ") : "NONE FILED YET";
+    return parts.length > 0 ? parts : ["NONE FILED YET"];
   };
 
   const il = [
     ...(b.ilCarryover > 0 ? [`${fmt(b.ilCarryover)} CARRIED OVER`] : []),
     `${fmt(b.ilEarned)} EARNED`,
     `${fmt(b.ilSpent)} SPENT`,
-  ].join(" · ");
+  ];
 
   const otWorked = entries.filter(
     (e) => e.kind === "holiday_work" && e.credit_as === "ot" && !isPending(e),
@@ -114,8 +115,8 @@ export function buildTallyDetails(
     null,
   );
   const ot = lastOt
-    ? `${otWorked.length} ${otWorked.length === 1 ? "HOLIDAY" : "HOLIDAYS"} WORKED · LAST ${mmdd(lastOt)}`
-    : "NONE YET";
+    ? [`${otWorked.length} ${otWorked.length === 1 ? "HOLIDAY" : "HOLIDAYS"} WORKED`, `LAST ${mmdd(lastOt)}`]
+    : ["NONE YET"];
 
   return { vl: leave("vl"), sl: leave("sl"), il, ot };
 }
