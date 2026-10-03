@@ -43,7 +43,7 @@ const desktop = {
 const mobile = {
   ...common,
   palette: ["/preview/ledger", [{ text: "＋" }]],
-  log: ["/preview/ledger", [{ text: "Log →" }]],
+  log: ["/preview/ledger", [{ text: "Log holiday work" }]],
   leave: ["/preview/ledger", [{ text: "＋" }, { text: "File a leave" }]],
   invite: ["/preview/team", [{ text: "＋ INVITE" }]],
 };

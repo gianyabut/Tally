@@ -11,7 +11,7 @@ import {
 } from "react";
 import type { Role, YearSettings } from "@/lib/types";
 import type { Balances } from "@/lib/ledger/balances";
-import type { Entry, Holiday } from "@/lib/ledger/types";
+import type { Ahead, Entry, Holiday } from "@/lib/ledger/types";
 import type { NextHoliday } from "@/lib/data/ledger";
 import type { NotificationItem } from "@/lib/data/team";
 
@@ -23,6 +23,7 @@ export type AppData = {
   holidays: Holiday[];
   balances: Balances;
   nextHoliday: NextHoliday;
+  ahead: Ahead;
   role: Role;
   teamName: string;
   notifications: NotificationItem[];

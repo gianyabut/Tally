@@ -1,8 +1,8 @@
 import "server-only";
 import { getAuth } from "@/lib/auth";
 import type { YearSettings } from "@/lib/types";
-import type { Entry, Holiday } from "@/lib/ledger/types";
-import { todayIso } from "@/lib/ledger/dates";
+import type { Ahead, Entry, Holiday } from "@/lib/ledger/types";
+import { addDays, todayIso } from "@/lib/ledger/dates";
 
 export async function getYearSettings(
   year: number,
@@ -31,7 +31,12 @@ export type LedgerData = {
   entries: Entry[];
   holidays: Holiday[];
   nextHoliday: NextHoliday;
+  ahead: Ahead;
 };
+
+/** Length of the ledger's look-ahead ruler, in days. */
+const AHEAD_DAYS = 90;
+const LEAVE_KINDS = ["vl", "sl", "il_spend", "unpaid"];
 
 
 type ProofRow = {
@@ -42,6 +47,8 @@ type ProofRow = {
 };
 
 export async function getLedgerData(year: number): Promise<LedgerData> {
+  const today = todayIso();
+  const aheadTo = addDays(today, AHEAD_DAYS - 1);
   const auth = await getAuth();
   if (!auth) {
     return {
@@ -49,11 +56,14 @@ export async function getLedgerData(year: number): Promise<LedgerData> {
       entries: [],
       holidays: [],
       nextHoliday: null,
+      ahead: { from: today, days: AHEAD_DAYS, holidays: [], leaves: [] },
     };
   }
   const { supabase, userId } = auth;
 
-  const [ysRes, entryRes, holRes] = await Promise.all([
+  // The ruler's window crosses New Year in Q4, so its holidays and leaves are
+  // queried by date, not by `year`.
+  const [ysRes, entryRes, holRes, aheadHolRes, aheadLeaveRes] = await Promise.all([
     supabase
       .from("year_settings")
       .select("*")
@@ -74,6 +84,20 @@ export async function getLedgerData(year: number): Promise<LedgerData> {
       .select("*")
       .eq("year", year)
       .order("date", { ascending: true }),
+    supabase
+      .from("holidays")
+      .select("*")
+      .gte("date", today)
+      .lte("date", aheadTo)
+      .order("date", { ascending: true }),
+    supabase
+      .from("entries")
+      .select("id,date_start,date_end,kind")
+      .eq("user_id", userId)
+      .in("kind", LEAVE_KINDS)
+      .lte("date_start", aheadTo)
+      .gte("date_end", today)
+      .order("date_start", { ascending: true }),
   ]);
 
   const entries: Entry[] = (entryRes.data ?? []).map(
@@ -87,7 +111,6 @@ export async function getLedgerData(year: number): Promise<LedgerData> {
   const holidays = (holRes.data as Holiday[] | null) ?? [];
 
   // Next holiday relative to today.
-  const today = todayIso();
   let nextHoliday: NextHoliday = null;
   const upcoming = holidays.find((h) => h.date >= today);
   if (upcoming) {
@@ -105,5 +128,11 @@ export async function getLedgerData(year: number): Promise<LedgerData> {
     entries,
     holidays,
     nextHoliday,
+    ahead: {
+      from: today,
+      days: AHEAD_DAYS,
+      holidays: (aheadHolRes.data as Holiday[] | null) ?? [],
+      leaves: (aheadLeaveRes.data as Ahead["leaves"] | null) ?? [],
+    },
   };
 }

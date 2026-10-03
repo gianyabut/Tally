@@ -39,6 +39,7 @@ export default async function AppLayout({
     holidays: ledger.holidays,
     balances,
     nextHoliday: ledger.nextHoliday,
+    ahead: ledger.ahead,
     role: boot.membership.role,
     teamName: boot.teamName,
     notifications,

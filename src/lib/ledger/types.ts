@@ -36,6 +36,15 @@ export type Holiday = {
   country: string;
 };
 
+/** The ledger's look-ahead window: `days` days starting today, across years. */
+export type Ahead = {
+  from: string; // today, yyyy-mm-dd (Asia/Manila)
+  days: number;
+  holidays: Holiday[];
+  /** Leaves (VL / SL / IL spend / unpaid) overlapping the window. */
+  leaves: Pick<Entry, "id" | "date_start" | "date_end" | "kind">[];
+};
+
 /** A holiday_work entry only counts toward balances once it has a proof. */
 export function isPending(e: Entry): boolean {
   return e.kind === "holiday_work" && !e.proof;

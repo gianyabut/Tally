@@ -90,6 +90,8 @@ export const appData: AppData = {
   holidays,
   balances: deriveBalances(entries, yearSettings),
   nextHoliday: { holiday: holidays[5], daysUntil: 72 },
+  // The prototype's "today": 72 days before Bonifacio Day.
+  ahead: { from: "2026-09-19", days: 90, holidays: [holidays[5]], leaves: [] },
   role: "admin",
   teamName: "Bluefin Studio",
   notifications,

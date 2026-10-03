@@ -3,7 +3,10 @@
 import { useRef, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { HolidayRuler } from "@/components/ledger/HolidayRuler";
 import { TallyMarks } from "@/components/ledger/TallyMarks";
+import { daysBetween, weekday } from "@/lib/ledger/dates";
+import { buildRuler } from "@/lib/ledger/ruler";
 import {
   buildTallyRows,
   buildTimeline,
@@ -14,11 +17,12 @@ import { useAppData, useModal, useToast } from "../runtime";
 import { attachProof } from "../actions";
 import styles from "./ledger.module.css";
 
-const WEEKDAYS = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
-const weekday = (iso: string) => WEEKDAYS[new Date(iso + "T00:00:00Z").getUTCDay()];
+const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? "" : "S"}`;
+const awayLabel = (days: number) =>
+  days === 0 ? "TODAY" : days === 1 ? "DAY AWAY" : "DAYS AWAY";
 
 export function LedgerView() {
-  const { entries, balances, nextHoliday, year, holidays } = useAppData();
+  const { entries, balances, nextHoliday, ahead, year, holidays } = useAppData();
   const { open } = useModal();
   const { showToast } = useToast();
   const router = useRouter();
@@ -31,6 +35,16 @@ export function LedgerView() {
   const groups = buildTimeline(entries, holidays);
   const totalLeft = fmt(balances.totalLeft);
   const caption = `${fmt(balances.vlLeft)} VL + ${fmt(balances.slLeft)} SL + ${fmt(balances.ilAvailable)} IL`;
+
+  const ruler = buildRuler(ahead);
+  const aheadSummary =
+    plural(ruler.holidayCount, "HOLIDAY") +
+    (ruler.leaveCount > 0 ? ` · ${plural(ruler.leaveCount, "LEAVE")} FILED` : "");
+  // The window crosses New Year, so its first holiday can be next year's;
+  // past the window, fall back to this year's next holiday.
+  const next = ahead.holidays[0]
+    ? { holiday: ahead.holidays[0], daysUntil: daysBetween(ahead.from, ahead.holidays[0].date) }
+    : nextHoliday;
 
   function attachFor(entryId: string) {
     pendingEntryId.current = entryId;
@@ -108,30 +122,50 @@ export function LedgerView() {
           </div>
 
           <div className={styles.sideCol}>
-            <div className={styles.cardPair}>
-              <div className={styles.card}>
-                <div className={styles.cardEyebrow}>TAKING TIME OFF?</div>
-                <div className={styles.cardTitle}>File a leave</div>
-                <div className={styles.cardMeta}>PAST OR UPCOMING · ANY DATES</div>
-                <button type="button" className={styles.cardBtn} onClick={() => open("leave")}>
-                  File a leave
-                </button>
+            <div className={styles.ahead}>
+              <div className={styles.aheadHead}>
+                <span>NEXT {ahead.days} DAYS</span>
+                <span className={styles.aheadSum}>{aheadSummary}</span>
               </div>
-              {nextHoliday && (
-                <div className={styles.card}>
-                  <div className={styles.cardEyebrow}>
-                    NEXT HOLIDAY · T−{nextHoliday.daysUntil}D
+              <HolidayRuler ruler={ruler} />
+              <div className={styles.aheadLegend}>
+                <span>
+                  <i className={styles.lgToday} />
+                  TODAY
+                </span>
+                <span>
+                  <i className={styles.lgHoliday} />
+                  HOLIDAY
+                </span>
+                <span>
+                  <i className={styles.lgLeave} />
+                  YOUR LEAVE
+                </span>
+              </div>
+              {next && (
+                <div className={styles.next}>
+                  <div>
+                    <div className={styles.nextEyebrow}>NEXT HOLIDAY</div>
+                    <div className={styles.nextName}>{next.holiday.name}</div>
+                    <div className={styles.nextMeta}>
+                      {next.holiday.date} · {weekday(next.holiday.date)} ·{" "}
+                      {next.holiday.type.toUpperCase()}
+                    </div>
                   </div>
-                  <div className={styles.cardTitle}>{nextHoliday.holiday.name}</div>
-                  <div className={styles.cardMeta}>
-                    {nextHoliday.holiday.date} · {weekday(nextHoliday.holiday.date)} ·{" "}
-                    {nextHoliday.holiday.type.toUpperCase()}
+                  <div className={styles.nextCount}>
+                    <b>{next.daysUntil}</b>
+                    <span>{awayLabel(next.daysUntil)}</span>
                   </div>
-                  <button type="button" className={styles.cardBtnGhost} onClick={() => open("log")}>
-                    Log holiday work
-                  </button>
                 </div>
               )}
+              <div className={styles.aheadBtns}>
+                <button type="button" className={styles.aheadBtn} onClick={() => open("leave")}>
+                  File a leave
+                </button>
+                <button type="button" className={styles.aheadBtnGhost} onClick={() => open("log")}>
+                  Log holiday work
+                </button>
+              </div>
             </div>
             <Link href="/export" className={styles.exportRow}>
               <span className={styles.exportRowLabel}>{year} HR report</span>
@@ -240,16 +274,28 @@ export function LedgerView() {
           ))}
         </div>
 
-        {nextHoliday && (
-          <div className={styles.mStrip}>
-            <span className={styles.mStripDot} />
-            <span className={styles.mStripName}>{nextHoliday.holiday.name}</span>
-            <span className={styles.mStripT}>T−{nextHoliday.daysUntil}D</span>
-            <button type="button" className={styles.mStripLog} onClick={() => open("log")}>
-              Log →
-            </button>
+        <div className={styles.mAhead}>
+          <div className={styles.aheadHead}>
+            <span>NEXT {ahead.days} DAYS</span>
+            <span className={styles.aheadSum}>{aheadSummary}</span>
           </div>
-        )}
+          <HolidayRuler ruler={ruler} />
+          {next && (
+            <div className={styles.mNext}>
+              <div>
+                <div className={styles.mNextName}>{next.holiday.name}</div>
+                <div className={styles.mNextMeta}>
+                  {next.holiday.date.slice(5)} · {weekday(next.holiday.date)} ·{" "}
+                  {next.holiday.type.toUpperCase()}
+                </div>
+              </div>
+              <div className={`${styles.nextCount} ${styles.mNextCount}`}>
+                <b>{next.daysUntil}</b>
+                <span>{next.daysUntil === 0 ? "TODAY" : "DAYS"}</span>
+              </div>
+            </div>
+          )}
+        </div>
 
         <div className={styles.mScroll}>
           <div className={styles.mHead}>

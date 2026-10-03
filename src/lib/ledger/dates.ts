@@ -14,6 +14,10 @@ export function addDays(dateIso: string, n: number): string {
   return iso(d);
 }
 
+/** Whole days from `a` to `b` (negative when `b` is earlier). */
+export const daysBetween = (a: string, b: string) =>
+  Math.round((utc(b).getTime() - utc(a).getTime()) / 86400000);
+
 /** "MON" — the design's detail-form weekday. */
 export const weekday = (dateIso: string) => DOW[utc(dateIso).getUTCDay()];
 
