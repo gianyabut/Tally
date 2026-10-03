@@ -51,12 +51,27 @@
   font-size: 10.5px;
   color: var(--faint);
 }
+/* Rows spread to the band's full height (the side panel sets it). */
 .tallyCol {
   flex: 1;
   min-width: min(360px, 100%);
+  align-self: stretch;
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  justify-content: space-between;
+  gap: 14px;
+}
+.tallyItem {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.tallyDetail {
+  padding-left: 90px; /* label 74 + gap 16 */
+  font-family: var(--font-mono), monospace;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  color: var(--faint);
 }
 .tallyRow {
   display: flex;
@@ -87,7 +102,7 @@
   flex-direction: column;
   gap: 12px;
 }
-/* Look-ahead panel: the 90-day ruler, the next holiday, then both actions. */
+/* Next holiday, then both actions. The ruler sits full width below the band. */
 .ahead {
   padding: 18px 22px 20px;
   border: 1px solid var(--hair);
@@ -145,8 +160,6 @@
   display: flex;
   align-items: flex-end;
   gap: 16px;
-  padding-top: 14px;
-  border-top: 1px solid var(--line);
 }
 .nextEyebrow {
   font-family: var(--font-mono), monospace;
@@ -232,6 +245,27 @@
   margin-left: auto;
   font-size: 13.5px;
   font-weight: 600;
+}
+
+.wide {
+  margin: 0 clamp(20px, 4cqw, 44px);
+  padding: 4px 0 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.wideHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 22px;
+  font-family: var(--font-mono), monospace;
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  color: var(--dim);
+}
+.wideHead .aheadLegend {
+  margin: 0 0 0 auto;
 }
 
 .timeline {
@@ -455,6 +489,13 @@ button.metaPending:hover {
 }
 .mTallySub {
   font-size: 10px;
+}
+.mTallyDetail {
+  padding-left: 72px; /* label 60 + gap 12 */
+  font-family: var(--font-mono), monospace;
+  font-size: 9.5px;
+  letter-spacing: 0.06em;
+  color: var(--faint);
 }
 .mAhead {
   margin: 0 20px;

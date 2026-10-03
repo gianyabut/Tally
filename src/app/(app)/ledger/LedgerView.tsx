@@ -8,6 +8,7 @@ import { TallyMarks } from "@/components/ledger/TallyMarks";
 import { daysBetween, weekday } from "@/lib/ledger/dates";
 import { buildRuler } from "@/lib/ledger/ruler";
 import {
+  buildTallyDetails,
   buildTallyRows,
   buildTimeline,
   fmt,
@@ -32,6 +33,7 @@ export function LedgerView() {
   const pendingEntryId = useRef<string | null>(null);
 
   const tallyRows = buildTallyRows(balances);
+  const tallyDetails = buildTallyDetails(entries, balances, ahead.from);
   const groups = buildTimeline(entries, holidays);
   const totalLeft = fmt(balances.totalLeft);
   const caption = `${fmt(balances.vlLeft)} VL + ${fmt(balances.slLeft)} SL + ${fmt(balances.ilAvailable)} IL`;
@@ -107,41 +109,25 @@ export function LedgerView() {
 
           <div className={styles.tallyCol}>
             {tallyRows.map((t) => (
-              <div key={t.key} className={styles.tallyRow}>
-                <span className={styles.tallyLabel}>{t.label}</span>
-                <TallyMarks lit={t.lit} dim={t.dim} pending={t.pending} litColor={t.litColor} />
-                <span className={styles.tallyVal}>
-                  {t.val}
-                  <span className={styles.tallySub} style={{ color: t.subColor }}>
-                    {" "}
-                    {t.sub}
+              <div key={t.key} className={styles.tallyItem}>
+                <div className={styles.tallyRow}>
+                  <span className={styles.tallyLabel}>{t.label}</span>
+                  <TallyMarks lit={t.lit} dim={t.dim} pending={t.pending} litColor={t.litColor} />
+                  <span className={styles.tallyVal}>
+                    {t.val}
+                    <span className={styles.tallySub} style={{ color: t.subColor }}>
+                      {" "}
+                      {t.sub}
+                    </span>
                   </span>
-                </span>
+                </div>
+                <div className={styles.tallyDetail}>{tallyDetails[t.key]}</div>
               </div>
             ))}
           </div>
 
           <div className={styles.sideCol}>
             <div className={styles.ahead}>
-              <div className={styles.aheadHead}>
-                <span>NEXT {ahead.days} DAYS</span>
-                <span className={styles.aheadSum}>{aheadSummary}</span>
-              </div>
-              <HolidayRuler ruler={ruler} />
-              <div className={styles.aheadLegend}>
-                <span>
-                  <i className={styles.lgToday} />
-                  TODAY
-                </span>
-                <span>
-                  <i className={styles.lgHoliday} />
-                  HOLIDAY
-                </span>
-                <span>
-                  <i className={styles.lgLeave} />
-                  YOUR LEAVE
-                </span>
-              </div>
               {next && (
                 <div className={styles.next}>
                   <div>
@@ -172,6 +158,28 @@ export function LedgerView() {
               <span className={styles.exportRowCta}>Export →</span>
             </Link>
           </div>
+        </div>
+
+        <div className={styles.wide}>
+          <div className={styles.wideHead}>
+            <span>NEXT {ahead.days} DAYS</span>
+            <span className={styles.aheadSum}>{aheadSummary}</span>
+            <div className={styles.aheadLegend}>
+              <span>
+                <i className={styles.lgToday} />
+                TODAY
+              </span>
+              <span>
+                <i className={styles.lgHoliday} />
+                HOLIDAY
+              </span>
+              <span>
+                <i className={styles.lgLeave} />
+                YOUR LEAVE
+              </span>
+            </div>
+          </div>
+          <HolidayRuler ruler={ruler} step={12} />
         </div>
 
         <div className={styles.timeline}>
@@ -260,16 +268,19 @@ export function LedgerView() {
 
         <div className={styles.mTallies}>
           {tallyRows.map((t) => (
-            <div key={t.key} className={styles.mTallyRow}>
-              <span className={styles.mTallyLabel}>{t.label}</span>
-              <TallyMarks lit={t.lit} dim={t.dim} pending={t.pending} litColor={t.litColor} height={22} />
-              <span className={styles.mTallyVal}>
-                {t.val}
-                <span className={styles.mTallySub} style={{ color: t.subColor }}>
-                  {" "}
-                  {t.sub}
+            <div key={t.key} className={styles.tallyItem}>
+              <div className={styles.mTallyRow}>
+                <span className={styles.mTallyLabel}>{t.label}</span>
+                <TallyMarks lit={t.lit} dim={t.dim} pending={t.pending} litColor={t.litColor} height={22} />
+                <span className={styles.mTallyVal}>
+                  {t.val}
+                  <span className={styles.mTallySub} style={{ color: t.subColor }}>
+                    {" "}
+                    {t.sub}
+                  </span>
                 </span>
-              </span>
+              </div>
+              <div className={styles.mTallyDetail}>{tallyDetails[t.key]}</div>
             </div>
           ))}
         </div>
